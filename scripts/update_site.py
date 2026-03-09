@@ -40,6 +40,7 @@ def load_results(results_dir: Path) -> dict:
     experiments = [
         ("vibe-local-bench", "load_*.json", "vibe_local_load"),
         ("vibe-local-bench", "codegen_*.json", "vibe_local_codegen"),
+        ("disk-speed-bench", "diskspeed_*.json", "disk_speed"),
         ("comfyui-imggen-bench", "imggen_*.json", "comfyui_imggen"),
         ("comfyui-ltx-bench", "comfyui_*.json", "comfyui_ltx"),
         ("qwen3tts-bench", "tts_*.json", "qwen3tts"),
@@ -62,7 +63,10 @@ def load_results(results_dir: Path) -> dict:
 
             # 成功した結果がなければスキップ
             successful = [r for r in result.get("results", []) if r.get("success")]
-            if not successful and result.get("median_s") is None:
+            # disk-speed-bench は success ではなく read_ok/write_ok を使う
+            if not successful:
+                successful = [r for r in result.get("results", []) if r.get("read_ok") or r.get("write_ok")]
+            if not successful and result.get("median_s") is None and result.get("read_median_mbs") is None:
                 continue
 
             if model_tag not in model_groups:
@@ -72,7 +76,8 @@ def load_results(results_dir: Path) -> dict:
                 "drive": drive,
                 "median_s": result.get("median_s")
                 or result.get("ttfa_median_s")
-                or result.get("cold_start_median_s"),
+                or result.get("cold_start_median_s")
+                or result.get("read_median_mbs"),  # disk-speed uses read MB/s as main metric
                 "runs": result.get("runs"),
                 "generated": result.get("generated"),
             }
@@ -97,6 +102,13 @@ def load_results(results_dir: Path) -> dict:
                     entry["avg_tokens_per_sec"] = round(
                         sum(tps_list) / len(tps_list), 2
                     )
+            # ディスク速度ベンチ
+            if result.get("write_median_mbs") is not None:
+                entry["write_mbs"] = result["write_median_mbs"]
+            if result.get("read_median_mbs") is not None:
+                entry["read_mbs"] = result["read_median_mbs"]
+            if result.get("disk_info"):
+                entry["disk_info"] = result["disk_info"]
 
             model_groups[model_tag]["drives"][drive] = entry
 

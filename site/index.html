@@ -220,6 +220,52 @@ claude</code></pre>
   </div>
 </section>
 
+<!-- この実験に参加しよう -->
+<section id="participate">
+  <div class="container">
+    <h2 class="section-title">この実験に参加して新しいデータを追加しませんか?</h2>
+    <p style="margin-bottom:20px;">
+      あなたの PC でベンチマークを実行し、コミュニティの比較データに貢献できます。<br>
+      <strong>所要時間は約 10〜30 分</strong>。結果は自動的に集計され、このページに反映されます。
+    </p>
+    <div class="exp-grid">
+      <div class="exp-card">
+        <div class="exp-icon">1</div>
+        <h3>リポジトリをクローン</h3>
+        <pre class="code-block" style="margin-top:12px;"><code>git clone https://github.com/aicuai/aicu-bench
+cd aicu-bench</code></pre>
+      </div>
+      <div class="exp-card">
+        <div class="exp-icon">2</div>
+        <h3>Ollama をインストール</h3>
+        <p><a href="https://ollama.com/" target="_blank" rel="noopener">ollama.com</a> からダウンロード。各テスト対象ドライブにモデルを配置:</p>
+        <pre class="code-block" style="margin-top:12px;"><code>$env:OLLAMA_MODELS = "D:\ollama\models"
+ollama pull qwen3:8b</code></pre>
+      </div>
+      <div class="exp-card">
+        <div class="exp-icon">3</div>
+        <h3>ベンチマーク実行</h3>
+        <p>全自動スクリプトが前提条件チェック、ダウンロード計測、ベンチマーク、クリーンアップまで一気に実行します。</p>
+        <pre class="code-block" style="margin-top:12px;"><code>.\scripts\run_all_benchmarks.ps1 -Fresh</code></pre>
+      </div>
+      <div class="exp-card">
+        <div class="exp-icon">4</div>
+        <h3>結果を共有</h3>
+        <p>スクリプト終了時に結果が自動送信されます。<br>
+        手動で送信する場合:</p>
+        <pre class="code-block" style="margin-top:12px;"><code># 結果 JSON を確認
+cat results\bench_summary.json</code></pre>
+        <p style="margin-top:8px; font-size:0.85rem; color:var(--text-secondary);">
+          送信されるデータ: CPU/GPU/RAM スペック、ストレージ型番（シリアル番号はハッシュ化）、ベンチマーク結果。個人を特定する情報は含まれません。
+        </p>
+      </div>
+    </div>
+    <div style="margin-top:20px; text-align:center;">
+      <a href="https://github.com/aicuai/aicu-bench" class="cta" target="_blank" rel="noopener">GitHub で始める</a>
+    </div>
+  </div>
+</section>
+
 <!-- 計測結果 -->
 <section id="results">
   <div class="container">
@@ -233,6 +279,7 @@ claude</code></pre>
 <script>
 (function(){
   var LABELS = {
+    disk_speed:                   { name: 'シーケンシャル速度 (1GB)', unit: 'MB/s', lower: false, icon: '\uD83D\uDCBE' },
     vibe_local_load:              { name: 'Ollama モデルロード時間', unit: '秒', lower: true, icon: '>_' },
     vibe_local_load_qwen3_8b:     { name: 'モデルロード (qwen3:8b)', unit: '秒', lower: true, icon: '>_' },
     vibe_local_load_qwen3_1_7b:   { name: 'モデルロード (qwen3:1.7b)', unit: '秒', lower: true, icon: '>_' },
@@ -350,6 +397,32 @@ claude</code></pre>
       html += '</div></div>';
     }
 
+    // read/write MB/s サブチャート (disk-speed)
+    var hasRW = vals.some(function(x){ return x.extra && (x.extra.read_mbs || x.extra.write_mbs); });
+    if (hasRW) {
+      // Write speed
+      var hasWrite = vals.some(function(x){ return x.extra && x.extra.write_mbs; });
+      if (hasWrite) {
+        var maxWr = Math.max.apply(null, vals.map(function(x){ return (x.extra && x.extra.write_mbs) || 0; }));
+        html += '<div class="chart-sub">';
+        html += '<h4 class="chart-sub-title">シーケンシャルライト (MB/s) — 高いほど高速</h4>';
+        html += '<div class="chart-bars">';
+        for (var w = 0; w < vals.length; w++) {
+          var iwr = vals[w];
+          var wrv = (iwr.extra && iwr.extra.write_mbs) || 0;
+          var dmw = DRIVE_META[iwr.drive] || { name: iwr.drive, color: '#8b949e' };
+          var pctw = maxWr > 0 ? (wrv / maxWr * 100) : 0;
+          html += '<div class="chart-row">';
+          html += '<div class="chart-label"><span class="chart-drive">' + iwr.drive + ':</span></div>';
+          html += '<div class="chart-bar-wrap">';
+          html += '<div class="chart-bar" style="width:' + Math.max(pctw, 2) + '%;background:' + dmw.color + '">';
+          html += '<span class="chart-val">' + Math.round(wrv) + ' MB/s</span>';
+          html += '</div></div></div>';
+        }
+        html += '</div></div>';
+      }
+    }
+
     html += '</div>';
     return html;
   }
@@ -375,7 +448,8 @@ claude</code></pre>
     html += '</div>';
 
     // 表示順: 定義済みの順 → それ以外はアルファベット順
-    var prefOrder = ['vibe_local_load','vibe_local_load_qwen3_8b','vibe_local_load_qwen3_1_7b',
+    var prefOrder = ['disk_speed',
+      'vibe_local_load','vibe_local_load_qwen3_8b','vibe_local_load_qwen3_1_7b',
       'vibe_local_codegen','vibe_local_codegen_qwen3_8b','vibe_local_codegen_qwen3_1_7b',
       'comfyui_imggen','comfyui_ltx','qwen3tts'];
     var allKeys = Object.keys(data.experiments);

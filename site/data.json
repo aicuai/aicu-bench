@@ -115,7 +115,46 @@
         "C"
       ],
       "model": "qwen3:1.7b"
+    },
+    "disk_speed": {
+      "drives": {
+        "C": {
+          "drive": "C",
+          "median_s": 3534,
+          "runs": 2,
+          "generated": "2026-03-10T01:41:31.7320726+09:00",
+          "write_mbs": 444.54999999999995,
+          "read_mbs": 3534,
+          "disk_info": {
+            "model": "NVMe KIOXIA-EXCERIA G2 SSD",
+            "serial": "0000_0000_0000_0000_8CE3_8E03_008B_EA99.",
+            "unique_id": "eui.8CE38E03008BEA99",
+            "bus_type": "NVMe",
+            "firmware": "ECFA17.1"
+          }
+        },
+        "D": {
+          "drive": "D",
+          "median_s": 3455.7,
+          "runs": 2,
+          "generated": "2026-03-10T01:41:45.1960064+09:00",
+          "write_mbs": 382.8,
+          "read_mbs": 3455.7,
+          "disk_info": {
+            "model": "NVMe ALEG-850-1TCS",
+            "serial": "0000_0000_0000_0000_707C_1802_2402_157B.",
+            "unique_id": "eui.707C18022402157B",
+            "bus_type": "NVMe",
+            "firmware": "V0922A1"
+          }
+        }
+      },
+      "drive_order": [
+        "C",
+        "D"
+      ],
+      "model": "unknown"
     }
   },
-  "updated": "2026-03-10T01:32:02.802540"
+  "updated": "2026-03-10T01:42:27.725278"
 }

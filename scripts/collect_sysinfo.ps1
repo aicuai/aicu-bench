@@ -93,9 +93,10 @@ try {
     }
 } catch {}
 
-# ストレージ情報
+# ストレージ情報（シリアル番号・UniqueId 含む）
 $storage = @()
 try {
+    $physDisks = Get-PhysicalDisk -ErrorAction SilentlyContinue
     $drives = Get-CimInstance Win32_DiskDrive | Sort-Object Index
     foreach ($d in $drives) {
         $partitions = Get-CimInstance -Query "ASSOCIATORS OF {Win32_DiskDrive.DeviceID='$($d.DeviceID)'} WHERE AssocClass=Win32_DiskDriveToDiskPartition"
@@ -106,10 +107,25 @@ try {
                 $letters += $l.DeviceID
             }
         }
+        # Get-PhysicalDisk からシリアル番号と UniqueId を取得
+        $serial = $null; $uniqueId = $null; $busType = $null; $firmware = $null
+        if ($physDisks) {
+            $match = $physDisks | Where-Object { $d.Model -like "*$($_.FriendlyName)*" -or $_.FriendlyName -like "*$($d.Model.Trim())*" } | Select-Object -First 1
+            if ($match) {
+                $serial   = if ($match.SerialNumber) { $match.SerialNumber.Trim() } else { $null }
+                $uniqueId = if ($match.UniqueId) { $match.UniqueId.Trim() } else { $null }
+                $busType  = "$($match.BusType)"
+                $firmware = if ($match.FirmwareVersion) { $match.FirmwareVersion.Trim() } else { $null }
+            }
+        }
         $storage += [ordered]@{
             model     = $d.Model.Trim()
+            serial    = $serial
+            unique_id = $uniqueId
+            firmware  = $firmware
             size_gb   = [math]::Round($d.Size / 1GB, 1)
             interface = $d.InterfaceType
+            bus_type  = $busType
             letters   = $letters -join ", "
         }
     }

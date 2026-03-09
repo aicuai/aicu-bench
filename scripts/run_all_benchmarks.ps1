@@ -320,6 +320,7 @@ if ($Fresh) {
     Write-Host "`n[Phase 1.5] Fresh mode: clearing old results..." -ForegroundColor Yellow
     $oldDirs = @(
         (Join-Path $ResultsDir "vibe-local-bench"),
+        (Join-Path $ResultsDir "disk-speed-bench"),
         (Join-Path $ResultsDir "comfyui-imggen-bench"),
         (Join-Path $ResultsDir "comfyui-ltx-bench"),
         (Join-Path $ResultsDir "qwen3tts-bench")
@@ -415,6 +416,29 @@ if (Test-Path $vibeScript) {
 $sw5a.Stop()
 $stepTimes["vibe_local_bench"] = [math]::Round($sw5a.Elapsed.TotalSeconds, 2)
 Write-Host "    vibe-local-bench: $([math]::Round($sw5a.Elapsed.TotalMinutes, 1)) min" -ForegroundColor Gray
+
+# ── 5a2: disk-speed-bench ──
+Write-Host "`n  [5a2] disk-speed-bench (sequential read/write)..." -ForegroundColor Cyan
+$sw5a2 = [System.Diagnostics.Stopwatch]::StartNew()
+$diskBenchScript = Join-Path $RootDir "disk-speed-bench\bench_diskspeed.ps1"
+if (Test-Path $diskBenchScript) {
+    foreach ($d in $TestDrives) {
+        $diskFree = (Get-DriveSpace -DriveLetter $d).free_gb
+        if ($diskFree -gt 2) {
+            try {
+                & $diskBenchScript -Drive $d -Runs $Runs -SizeMB 1024
+            } catch {
+                Log-Error "disk-speed" "Drive ${d}: $_"
+            }
+        } else {
+            Write-Host "    SKIP ${d}: not enough free space ($diskFree GB)" -ForegroundColor DarkYellow
+        }
+    }
+} else {
+    Write-Host "    SKIP: $diskBenchScript not found" -ForegroundColor DarkYellow
+}
+$sw5a2.Stop()
+$stepTimes["disk_speed_bench"] = [math]::Round($sw5a2.Elapsed.TotalSeconds, 2)
 
 # ── 5b: comfyui-imggen-bench ──
 if (-not $SkipComfyUI) {
@@ -655,3 +679,76 @@ if ($script:Errors.Count -gt 0) {
         Write-Host "  [$($err.phase)] $($err.message)" -ForegroundColor Red
     }
 }
+
+# ══════════════════════════════════════════════════════
+# Phase 9: 結果送信（コミュニティデータ共有）
+# ══════════════════════════════════════════════════════
+$submitUrl = "https://bench.aicu.jp/api/submit"
+# SSD シリアル番号を匿名化（ハッシュ化）して送信
+$sysInfoFile = Join-Path $ResultsDir "sysinfo.json"
+$submitPayload = $null
+if (Test-Path $summaryFile) {
+    try {
+        $summaryData = Get-Content $summaryFile -Raw | ConvertFrom-Json
+        $siteDataFile = Join-Path $RootDir "site\data.json"
+        $siteData = if (Test-Path $siteDataFile) { Get-Content $siteDataFile -Raw | ConvertFrom-Json } else { $null }
+        $sysData = if (Test-Path $sysInfoFile) { Get-Content $sysInfoFile -Raw | ConvertFrom-Json } else { $null }
+
+        # ストレージシリアル番号をハッシュ化（プライバシー保護）
+        $storageAnon = @()
+        if ($sysData -and $sysData.storage) {
+            foreach ($s in $sysData.storage) {
+                $hashInput = "$($s.serial)$($s.unique_id)"
+                $sha = [System.Security.Cryptography.SHA256]::Create()
+                $hashBytes = $sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($hashInput))
+                $deviceHash = [BitConverter]::ToString($hashBytes).Replace("-","").Substring(0, 16).ToLower()
+                $storageAnon += [ordered]@{
+                    model     = $s.model
+                    device_id = $deviceHash
+                    size_gb   = $s.size_gb
+                    bus_type  = $s.bus_type
+                    firmware  = $s.firmware
+                    letters   = $s.letters
+                }
+            }
+        }
+
+        $submitPayload = [ordered]@{
+            version       = "2.1"
+            hostname_hash = [BitConverter]::ToString(
+                [System.Security.Cryptography.SHA256]::Create().ComputeHash(
+                    [System.Text.Encoding]::UTF8.GetBytes($env:COMPUTERNAME)
+                )
+            ).Replace("-","").Substring(0, 12).ToLower()
+            system        = [ordered]@{
+                cpu     = if ($sysData) { $sysData.cpu.name } else { $null }
+                gpu     = if ($sysData) { $sysData.gpu.name } else { $null }
+                vram_mb = if ($sysData) { $sysData.gpu.vram_total_mb } else { $null }
+                ram_gb  = if ($sysData) { $sysData.memory.total_gb } else { $null }
+                os      = if ($sysData) { $sysData.os.name } else { $null }
+                storage = $storageAnon
+            }
+            summary       = $summaryData
+            experiments   = if ($siteData) { $siteData.experiments } else { $null }
+            submitted     = (Get-Date -Format "o")
+        }
+
+        Write-Host "`n[Phase 9] Submit results to community database" -ForegroundColor Yellow
+        Write-Host "  Endpoint: $submitUrl" -ForegroundColor Gray
+        try {
+            $jsonBody = $submitPayload | ConvertTo-Json -Depth 10 -Compress
+            $response = Invoke-RestMethod -Uri $submitUrl -Method Post -Body $jsonBody `
+                -ContentType "application/json" -TimeoutSec 15 -ErrorAction Stop
+            Write-Host "  Submitted successfully!" -ForegroundColor Green
+            if ($response.id) { Write-Host "  Submission ID: $($response.id)" -ForegroundColor Gray }
+        } catch {
+            Write-Host "  Submit failed (offline or endpoint not yet deployed): $_" -ForegroundColor DarkYellow
+            Write-Host "  Results saved locally. You can submit later via:" -ForegroundColor DarkYellow
+            Write-Host "    Invoke-RestMethod -Uri '$submitUrl' -Method Post -Body (Get-Content '$summaryFile' -Raw) -ContentType 'application/json'" -ForegroundColor DarkGray
+        }
+    } catch {
+        Write-Host "  Could not prepare submission: $_" -ForegroundColor DarkYellow
+    }
+}
+
+Write-Host "`nDone! View results at https://bench.aicu.jp" -ForegroundColor Cyan
