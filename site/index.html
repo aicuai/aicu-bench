@@ -193,41 +193,149 @@ claude</code></pre>
 
 <script>
 (function(){
-  fetch('data.json').then(r=>r.json()).then(function(data){
+  var LABELS = {
+    vibe_local_load:   { name: 'Ollama モデルロード時間', unit: '秒', lower: true, icon: '>_' },
+    vibe_local_codegen:{ name: 'コード生成時間',          unit: '秒', lower: true, icon: '>_' },
+    comfyui_imggen:    { name: '画像生成 (z-image-turbo)',unit: '秒', lower: true, icon: '\uD83D\uDDBC' },
+    comfyui_ltx:       { name: '動画生成 (LTX-Video)',    unit: '秒', lower: true, icon: '\uD83C\uDFAC' },
+    qwen3tts:          { name: 'TTS 初動時間',            unit: '秒', lower: true, icon: '\uD83C\uDF99' }
+  };
+  var DRIVE_META = {
+    D: { name: '9100 PRO (Gen5 NVMe)',      color: '#2f81f7', type: 'Gen5 NVMe' },
+    E: { name: '870 QVO (SATA SSD)',         color: '#f0883e', type: 'SATA SSD' },
+    F: { name: 'HDD 8TB',                   color: '#da3633', type: 'SATA HDD' },
+    G: { name: '9100 PRO ICY DOCK (Gen5)',   color: '#3fb950', type: 'Gen5 NVMe' }
+  };
+
+  function fmtVal(v, decimals) {
+    if (v == null) return '—';
+    if (v >= 60) return (v / 60).toFixed(1) + 'm';
+    return v.toFixed(decimals || 2);
+  }
+
+  function renderChart(key, exp) {
+    var meta = LABELS[key] || { name: key, unit: '秒', lower: true, icon: '' };
+    var order = exp.drive_order || Object.keys(exp.drives);
+    var vals = [];
+    for (var i = 0; i < order.length; i++) {
+      var d = order[i];
+      if (!exp.drives[d]) continue;
+      var v = exp.drives[d].median_s;
+      if (v != null) vals.push({ drive: d, val: v, extra: exp.drives[d] });
+    }
+    if (vals.length === 0) return '';
+
+    var maxVal = Math.max.apply(null, vals.map(function(x){ return x.val; }));
+    var minVal = Math.min.apply(null, vals.map(function(x){ return x.val; }));
+
+    var html = '<div class="chart-section">';
+    html += '<div class="chart-header">';
+    html += '<span class="chart-icon">' + meta.icon + '</span>';
+    html += '<h3 class="chart-title">' + meta.name + '</h3>';
+    html += '<span class="chart-badge">' + (meta.lower ? '低いほど高速' : '高いほど高速') + '</span>';
+    html += '</div>';
+    html += '<div class="chart-bars">';
+
+    for (var j = 0; j < vals.length; j++) {
+      var item = vals[j];
+      var dm = DRIVE_META[item.drive] || { name: item.drive, color: '#8b949e', type: '' };
+      var pct = maxVal > 0 ? (item.val / maxVal * 100) : 0;
+      var isBest = (meta.lower && item.val === minVal) || (!meta.lower && item.val === maxVal);
+      var speedup = '';
+      if (meta.lower && minVal > 0 && item.val !== minVal) {
+        speedup = ' (' + (item.val / minVal).toFixed(1) + 'x)';
+      }
+
+      html += '<div class="chart-row' + (isBest ? ' chart-row--best' : '') + '">';
+      html += '<div class="chart-label">';
+      html += '<span class="chart-drive">' + item.drive + ':</span> ';
+      html += '<span class="chart-drive-name">' + dm.name + '</span>';
+      html += '</div>';
+      html += '<div class="chart-bar-wrap">';
+      html += '<div class="chart-bar" style="width:' + Math.max(pct, 2) + '%;background:' + dm.color + '">';
+      html += '<span class="chart-val">' + fmtVal(item.val) + meta.unit + speedup + '</span>';
+      html += '</div>';
+      html += '</div>';
+      html += '</div>';
+    }
+
+    html += '</div>';
+
+    // tokens/sec サブチャート (codegen)
+    var hasTps = vals.some(function(x){ return x.extra && x.extra.avg_tokens_per_sec; });
+    if (hasTps) {
+      var maxTps = Math.max.apply(null, vals.map(function(x){ return (x.extra && x.extra.avg_tokens_per_sec) || 0; }));
+      html += '<div class="chart-sub">';
+      html += '<h4 class="chart-sub-title">トークン生成速度 (tok/s) — 高いほど高速</h4>';
+      html += '<div class="chart-bars">';
+      for (var k = 0; k < vals.length; k++) {
+        var it = vals[k];
+        var tps = (it.extra && it.extra.avg_tokens_per_sec) || 0;
+        var dm2 = DRIVE_META[it.drive] || { name: it.drive, color: '#8b949e' };
+        var pct2 = maxTps > 0 ? (tps / maxTps * 100) : 0;
+        html += '<div class="chart-row">';
+        html += '<div class="chart-label"><span class="chart-drive">' + it.drive + ':</span></div>';
+        html += '<div class="chart-bar-wrap">';
+        html += '<div class="chart-bar" style="width:' + Math.max(pct2, 2) + '%;background:' + dm2.color + '">';
+        html += '<span class="chart-val">' + tps.toFixed(1) + ' tok/s</span>';
+        html += '</div></div></div>';
+      }
+      html += '</div></div>';
+    }
+
+    // warm median サブチャート (imggen)
+    var hasWarm = vals.some(function(x){ return x.extra && x.extra.warm_median_s; });
+    if (hasWarm) {
+      var maxW = Math.max.apply(null, vals.map(function(x){ return (x.extra && x.extra.warm_median_s) || 0; }));
+      html += '<div class="chart-sub">';
+      html += '<h4 class="chart-sub-title">ウォームスタート (キャッシュ済) — 低いほど高速</h4>';
+      html += '<div class="chart-bars">';
+      for (var m = 0; m < vals.length; m++) {
+        var iw = vals[m];
+        var wv = (iw.extra && iw.extra.warm_median_s) || 0;
+        var dm3 = DRIVE_META[iw.drive] || { name: iw.drive, color: '#8b949e' };
+        var pct3 = maxW > 0 ? (wv / maxW * 100) : 0;
+        html += '<div class="chart-row">';
+        html += '<div class="chart-label"><span class="chart-drive">' + iw.drive + ':</span></div>';
+        html += '<div class="chart-bar-wrap">';
+        html += '<div class="chart-bar" style="width:' + Math.max(pct3, 2) + '%;background:' + dm3.color + '">';
+        html += '<span class="chart-val">' + fmtVal(wv) + '秒</span>';
+        html += '</div></div></div>';
+      }
+      html += '</div></div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  fetch('data.json').then(function(r){ return r.json(); }).then(function(data){
     var area = document.getElementById('results-area');
-    if(!data.experiments || Object.keys(data.experiments).length===0){
-      area.innerHTML='<p style="color:var(--text-secondary)">計測データは実験完了後に公開されます。</p>';
+    if (!data.experiments || Object.keys(data.experiments).length === 0) {
+      area.innerHTML = '<p style="color:var(--text-secondary)">計測データは実験完了後に公開されます。</p>';
       return;
     }
-    var labels={
-      vibe_local_load:'Ollama モデルロード時間',
-      vibe_local_codegen:'コード生成時間',
-      comfyui_imggen:'画像生成 (z-image-turbo)',
-      comfyui_ltx:'動画生成 (LTX-Video)',
-      qwen3tts:'TTS 初動時間'
-    };
-    var driveNames={D:'9100 PRO (Gen5)',E:'870 QVO (SATA)',F:'HDD',G:'9100 PRO (ICY DOCK)'};
-    var html='';
-    for(var key in data.experiments){
-      var exp=data.experiments[key];
-      html+='<h3 style="margin:24px 0 12px;font-size:1.1rem">'+(labels[key]||key)+'</h3>';
-      html+='<table class="storage-table"><thead><tr><th>ドライブ</th><th>中央値 (秒)</th></tr></thead><tbody>';
-      var order=exp.drive_order||Object.keys(exp.drives);
-      for(var i=0;i<order.length;i++){
-        var d=order[i];
-        if(!exp.drives[d])continue;
-        var v=exp.drives[d].median_s;
-        var vs=v!=null?v.toFixed(3):'—';
-        html+='<tr><td>'+d+': '+(driveNames[d]||d)+'</td><td>'+vs+'</td></tr>';
+
+    var html = '<div class="chart-legend">';
+    for (var d in DRIVE_META) {
+      html += '<span class="legend-item"><span class="legend-dot" style="background:' + DRIVE_META[d].color + '"></span>' + d + ': ' + DRIVE_META[d].type + '</span>';
+    }
+    html += '</div>';
+
+    var expOrder = ['vibe_local_load','vibe_local_codegen','comfyui_imggen','comfyui_ltx','qwen3tts'];
+    for (var i = 0; i < expOrder.length; i++) {
+      var k = expOrder[i];
+      if (data.experiments[k]) {
+        html += renderChart(k, data.experiments[k]);
       }
-      html+='</tbody></table>';
     }
-    if(data.updated){
-      html+='<p style="margin-top:20px;font-size:0.85rem;color:var(--text-secondary)">Last updated: '+data.updated+'</p>';
+
+    if (data.updated) {
+      html += '<p class="chart-updated">Last updated: ' + data.updated + '</p>';
     }
-    area.innerHTML=html;
+    area.innerHTML = html;
   }).catch(function(){
-    document.getElementById('results-area').innerHTML='<p style="color:var(--text-secondary)">計測データは実験完了後に公開されます。</p>';
+    document.getElementById('results-area').innerHTML = '<p style="color:var(--text-secondary)">計測データは実験完了後に公開されます。</p>';
   });
 })();
 </script>
