@@ -55,7 +55,7 @@ if (-not $SkipComfyUI) {
     Write-Host "`n[3/5] Running comfyui-imggen-bench (z-image-turbo)..." -ForegroundColor Cyan
     $imggenScript = Join-Path $RootDir "comfyui-imggen-bench\bench_imggen.py"
     if (Test-Path $imggenScript) {
-        python $imggenScript --all-drives --runs $Runs
+        py $imggenScript --all-drives --runs $Runs
     } else {
         Write-Host "  SKIP: $imggenScript not found" -ForegroundColor DarkYellow
     }
@@ -68,7 +68,7 @@ if (-not $SkipComfyUI) {
     Write-Host "`n[4/5] Running comfyui-ltx-bench (LTX-Video)..." -ForegroundColor Cyan
     $comfyScript = Join-Path $RootDir "comfyui-ltx-bench\bench_comfyui.py"
     if (Test-Path $comfyScript) {
-        python $comfyScript --all-drives --runs $Runs
+        py $comfyScript --all-drives --runs $Runs
     } else {
         Write-Host "  SKIP: $comfyScript not found" -ForegroundColor DarkYellow
     }
@@ -81,7 +81,7 @@ if (-not $SkipTTS) {
     Write-Host "`n[5/5] Running qwen3tts-bench..." -ForegroundColor Cyan
     $ttsScript = Join-Path $RootDir "qwen3tts-bench\bench_tts.py"
     if (Test-Path $ttsScript) {
-        python $ttsScript --all-drives --runs $Runs
+        py $ttsScript --all-drives --runs $Runs
     } else {
         Write-Host "  SKIP: $ttsScript not found" -ForegroundColor DarkYellow
     }
