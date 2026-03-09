@@ -28,11 +28,11 @@ try {
         $gpu = [ordered]@{
             name          = $parts[0]
             driver        = $parts[1]
-            vram_total_mb = [int]$parts[2]
-            vram_free_mb  = [int]$parts[3]
-            temp_c        = [int]$parts[4]
-            power_draw_w  = [double]$parts[5]
-            power_limit_w = [double]$parts[6]
+            vram_total_mb = if ($parts[2] -match '^\d+') { [int]$parts[2] } else { $null }
+            vram_free_mb  = if ($parts[3] -match '^\d+') { [int]$parts[3] } else { $null }
+            temp_c        = if ($parts[4] -match '^\d+') { [int]$parts[4] } else { $null }
+            power_draw_w  = if ($parts[5] -match '^[\d.]+') { [double]$parts[5] } else { $null }
+            power_limit_w = if ($parts[6] -match '^[\d.]+') { [double]$parts[6] } else { $null }
         }
     }
 
