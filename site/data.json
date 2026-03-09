@@ -47,10 +47,18 @@
           "runs": 3,
           "generated": "2026-03-09T19:11:38.5386650+09:00",
           "avg_tokens_per_sec": 23.45
+        },
+        "D": {
+          "drive": "D",
+          "median_s": 82.022,
+          "runs": 3,
+          "generated": "2026-03-09T19:42:42.1745391+09:00",
+          "avg_tokens_per_sec": 19.38
         }
       },
       "drive_order": [
-        "C"
+        "C",
+        "D"
       ],
       "model": "qwen3:1.7b"
     },
@@ -65,10 +73,10 @@
         },
         "D": {
           "drive": "D",
-          "median_s": 406.985,
-          "runs": 1,
-          "generated": "2026-03-09T19:26:56.7709208+09:00",
-          "avg_tokens_per_sec": 4.86
+          "median_s": 364.168,
+          "runs": 3,
+          "generated": "2026-03-09T19:38:15.2550777+09:00",
+          "avg_tokens_per_sec": 5.59
         }
       },
       "drive_order": [
@@ -78,5 +86,5 @@
       "model": "qwen3:8b"
     }
   },
-  "updated": "2026-03-09T19:30:16.781760"
+  "updated": "2026-03-10T00:54:54.595807"
 }
