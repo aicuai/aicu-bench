@@ -260,6 +260,18 @@ cat results\bench_summary.json</code></pre>
         </p>
       </div>
     </div>
+    <!-- プライバシーと重複回避 -->
+    <div style="margin-top:28px; padding:20px 24px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius);">
+      <h4 style="margin-bottom:10px;">プライバシー保護と同一結果の回避</h4>
+      <ul style="list-style:disc; padding-left:20px; color:var(--text-secondary); font-size:0.9rem; line-height:1.8;">
+        <li><strong>ホスト名・SSD シリアル番号は SHA-256 でハッシュ化</strong>して送信されます。元の値を復元することはできません。</li>
+        <li>送信される情報は CPU/GPU/RAM の型番、ストレージの製品名・バスタイプ・ファームウェアバージョン、およびベンチマーク数値のみです。</li>
+        <li><strong>個人を特定できる情報（ユーザー名、IP アドレス、ファイルパス等）は一切送信されません。</strong></li>
+        <li>SSD の UniqueId（EUI-64）をハッシュ化した <strong>device_id</strong> により、同一デバイスからの重複送信を検出・統合します。同じ環境で複数回実行しても、最新の結果のみが反映されます。</li>
+        <li>送信前に <code>results\bench_summary.json</code> の内容を確認できます。送信は任意です（<code>-SkipSubmit</code> フラグで無効化可能）。</li>
+      </ul>
+    </div>
+
     <div style="margin-top:20px; text-align:center;">
       <a href="https://github.com/aicuai/aicu-bench" class="cta" target="_blank" rel="noopener">GitHub で始める</a>
     </div>
@@ -610,10 +622,27 @@ cat results\bench_summary.json</code></pre>
         <div class="link-desc">プロジェクト運営</div>
       </li>
       <li>
-        <a href="https://www.samsung.com/semiconductor/minisite/ssd/product/consumer/9100pro/" target="_blank" rel="noopener">Samsung 9100 PRO</a>
-        <div class="link-desc">テスト対象 Gen5 NVMe SSD</div>
+        <a href="https://amzn.to/46JRoWE" target="_blank" rel="noopener">Samsung 9100 PRO (Amazon)</a>
+        <div class="link-desc">テスト対象 Gen5 NVMe SSD &mdash; AI ワークロードに最適な大容量高速ストレージ</div>
+      </li>
+      <li>
+        <a href="https://www.samsung.com/semiconductor/minisite/ssd/product/consumer/9100pro/" target="_blank" rel="noopener">Samsung 9100 PRO (公式)</a>
+        <div class="link-desc">製品仕様・技術情報</div>
       </li>
     </ul>
+  </div>
+</section>
+
+<!-- 謝辞 -->
+<section>
+  <div class="container" style="text-align:center; padding: 40px 24px;">
+    <p style="font-size:1rem; color:var(--text-secondary); line-height:1.8;">
+      ベンチマーク協力: <strong>Samsung Japan</strong> 様、<strong>Impress</strong> 様<br>
+      ご協力ありがとうございます。
+    </p>
+    <p style="margin-top:12px;">
+      <a href="https://amzn.to/46JRoWE" target="_blank" rel="noopener" style="font-weight:700;">Samsung 9100 PRO を Amazon で見る</a>
+    </p>
   </div>
 </section>
 
