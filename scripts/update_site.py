@@ -58,8 +58,14 @@ def load_results(results_dir: Path) -> dict:
                 result = json.load(f)
 
             drive = result.get("drive", "?")
-            model = result.get("model", "unknown")
-            model_tag = model.replace(":", "_")
+            # disk-speed-bench はモデルではなくテストサイズで分類
+            if result.get("experiment") == "disk-speed-bench":
+                size_mb = result.get("size_mb", 1024)
+                model = f"{size_mb}MB"
+                model_tag = f"{size_mb}MB"
+            else:
+                model = result.get("model", "unknown")
+                model_tag = model.replace(":", "_")
 
             # 成功した結果がなければスキップ
             successful = [r for r in result.get("results", []) if r.get("success")]

@@ -206,7 +206,7 @@ try {
 } catch {}
 
 # 結果出力
-$outFile = Join-Path $OutputDir "diskspeed_${Drive}.json"
+$outFile = Join-Path $OutputDir "diskspeed_${Drive}_${SizeMB}MB.json"
 $summary = [ordered]@{
     experiment      = "disk-speed-bench"
     test            = "sequential"

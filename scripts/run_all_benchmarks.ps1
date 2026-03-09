@@ -422,13 +422,16 @@ Write-Host "`n  [5a2] disk-speed-bench (sequential read/write)..." -ForegroundCo
 $sw5a2 = [System.Diagnostics.Stopwatch]::StartNew()
 $diskBenchScript = Join-Path $RootDir "disk-speed-bench\bench_diskspeed.ps1"
 if (Test-Path $diskBenchScript) {
+    $diskSizes = @(256, 512, 1024)
     foreach ($d in $TestDrives) {
         $diskFree = (Get-DriveSpace -DriveLetter $d).free_gb
         if ($diskFree -gt 2) {
-            try {
-                & $diskBenchScript -Drive $d -Runs $Runs -SizeMB 1024
-            } catch {
-                Log-Error "disk-speed" "Drive ${d}: $_"
+            foreach ($sizeMB in $diskSizes) {
+                try {
+                    & $diskBenchScript -Drive $d -Runs $Runs -SizeMB $sizeMB
+                } catch {
+                    Log-Error "disk-speed" "Drive ${d} ${sizeMB}MB: $_"
+                }
             }
         } else {
             Write-Host "    SKIP ${d}: not enough free space ($diskFree GB)" -ForegroundColor DarkYellow

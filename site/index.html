@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ai-storage-bench | AI ワークロード × ストレージ速度ベンチマーク</title>
-  <meta name="description" content="ストレージ速度が AI ワークロードに与える影響を定量評価。Samsung 9100 PRO (Gen5 NVMe) を含む 4 ドライブで再現可能なオープンソースベンチマーク。">
-  <meta property="og:title" content="ai-storage-bench">
-  <meta property="og:description" content="AI ワークロードにおけるストレージ速度影響の定量評価">
+  <title>AICU-bench | AI ワークロード × ストレージ速度ベンチマーク</title>
+  <meta name="description" content="AI ワークロードのパフォーマンスを多角的に計測するオープンソースベンチマーク。今回はストレージ速度の影響にフォーカスし、Samsung 9100 PRO (Gen5 NVMe) を含む 4 ドライブで検証。">
+  <meta property="og:title" content="AICU-bench">
+  <meta property="og:description" content="AI ワークロードベンチマーク — 今回のテーマ: ストレージ速度の影響">
   <meta property="og:url" content="https://bench.aicu.jp">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ja_JP">
@@ -18,9 +18,9 @@
 <!-- Hero -->
 <header class="hero">
   <div class="container">
-    <h1>ai-storage-bench</h1>
-    <p class="subtitle">AI ワークロードにおけるストレージ速度影響の定量評価</p>
-    <p class="tagline">Impress AKIBA PC Hotline! 取材協力ベンチマーク<br>Samsung 9100 PRO (Gen5 NVMe) &times; AI ワークロード</p>
+    <h1>AICU-bench</h1>
+    <p class="subtitle">AI ワークロードを多角的に計測するオープンソースベンチマーク</p>
+    <p class="tagline">今回のテーマ: ストレージ速度が AI ワークロードに与える影響<br>Impress AKIBA PC Hotline! 取材協力 | Samsung 9100 PRO (Gen5 NVMe) &times; AI ワークロード</p>
     <span class="badge">MIT License</span>
     <br>
     <a href="https://github.com/aicuai/aicu-bench" class="cta" target="_blank" rel="noopener">GitHub でソースを見る</a>
@@ -34,9 +34,11 @@
   <div class="container">
     <h2 class="section-title">概要</h2>
     <p>
-      ストレージ速度（PCIe Gen5 NVMe / SATA SSD / HDD）が
-      AI ワークロードのパフォーマンスにどう影響するかを
-      <strong>再現可能なオープンソーススクリプト</strong>で計測・公開します。
+      <strong>AICU-bench</strong> は、AI ワークロードのパフォーマンスを多角的に計測する
+      <strong>再現可能なオープンソースベンチマーク</strong>です。<br>
+      今回は<strong>ストレージ速度（PCIe Gen5 NVMe / SATA SSD / HDD）</strong>が
+      AI ワークロードに与える影響にフォーカスし、
+      LLM モデルロード・コード生成・画像/動画生成・音声合成の各タスクで検証します。
     </p>
   </div>
 </section>
@@ -360,7 +362,10 @@ cat results\bench_summary.json</code></pre>
 <script>
 (function(){
   var LABELS = {
-    disk_speed:                   { name: 'シーケンシャル速度 (1GB)', unit: 'MB/s', lower: false, icon: '\uD83D\uDCBE' },
+    disk_speed:                   { name: 'シーケンシャル速度', unit: 'MB/s', lower: false, icon: '\uD83D\uDCBE' },
+    disk_speed_256MB:             { name: 'シーケンシャル速度 (256MB)', unit: 'MB/s', lower: false, icon: '\uD83D\uDCBE' },
+    disk_speed_512MB:             { name: 'シーケンシャル速度 (512MB)', unit: 'MB/s', lower: false, icon: '\uD83D\uDCBE' },
+    disk_speed_1024MB:            { name: 'シーケンシャル速度 (1024MB)', unit: 'MB/s', lower: false, icon: '\uD83D\uDCBE' },
     vibe_local_load:              { name: 'Ollama モデルロード時間', unit: '秒', lower: true, icon: '>_' },
     vibe_local_load_qwen3_8b:     { name: 'モデルロード (qwen3:8b)', unit: '秒', lower: true, icon: '>_' },
     vibe_local_load_qwen3_1_7b:   { name: 'モデルロード (qwen3:1.7b)', unit: '秒', lower: true, icon: '>_' },
@@ -529,7 +534,7 @@ cat results\bench_summary.json</code></pre>
     html += '</div>';
 
     // 表示順: 定義済みの順 → それ以外はアルファベット順
-    var prefOrder = ['disk_speed',
+    var prefOrder = ['disk_speed','disk_speed_256MB','disk_speed_512MB','disk_speed_1024MB',
       'vibe_local_load','vibe_local_load_qwen3_8b','vibe_local_load_qwen3_1_7b',
       'vibe_local_codegen','vibe_local_codegen_qwen3_8b','vibe_local_codegen_qwen3_1_7b',
       'comfyui_imggen','comfyui_ltx','qwen3tts'];
@@ -549,6 +554,106 @@ cat results\bench_summary.json</code></pre>
   });
 })();
 </script>
+
+<!-- テストサイズによる変動の考察 -->
+<section>
+  <div class="container">
+    <h2 class="section-title">考察: テストサイズとディスク速度計測の信頼性</h2>
+    <p style="margin-bottom:16px; color: var(--text-secondary); font-size: 0.95rem;">
+      同一環境（NVMe Gen4 &times; 2 ドライブ）で 256MB / 512MB / 1024MB の 3 サイズ &times; 3 回計測を複数セッションにわたり実施。
+      テストサイズが計測結果に大きく影響することが判明しました。
+    </p>
+
+    <div class="exp-card" style="margin-bottom:20px;">
+      <h3>予備調査 3 回の比較結果</h3>
+      <table class="storage-table">
+        <thead>
+          <tr><th>ドライブ</th><th>サイズ</th><th>Read (MB/s)</th><th>Write (MB/s)</th><th>備考</th></tr>
+        </thead>
+        <tbody>
+          <tr><td rowspan="3"><strong>C: KIOXIA G2</strong><br><span style="font-size:0.8rem;color:var(--text-secondary)">OS ドライブ</span></td>
+              <td>256 MB</td><td>820</td><td>741</td><td>最も安定</td></tr>
+          <tr><td>512 MB</td><td>1,052</td><td>1,053</td><td>最速値</td></tr>
+          <tr><td>1024 MB</td><td>888</td><td>983</td><td>分散大（457〜1,031）</td></tr>
+          <tr><td rowspan="3"><strong>D: ALEG-850</strong><br><span style="font-size:0.8rem;color:var(--text-secondary)">データドライブ</span></td>
+              <td>256 MB</td><td>1,340</td><td>1,297</td><td>最速値</td></tr>
+          <tr><td>512 MB</td><td>1,049</td><td>1,246</td><td>Read に外れ値（379 MB/s）</td></tr>
+          <tr><td>1024 MB</td><td>1,266</td><td>882</td><td>Write に外れ値（407 MB/s）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="exp-grid">
+      <div class="exp-card">
+        <h3>発見 1: 理論値は出ない</h3>
+        <p>
+          両ドライブとも NVMe Gen4 接続で、カタログ上のシーケンシャルリードは <strong>3,000〜3,500 MB/s</strong>。
+          しかし実測では最高でも <strong>1,340 MB/s</strong> にとどまりました。
+        </p>
+        <p style="margin-top:8px;">
+          <strong>理由:</strong> CrystalDiskMark 等の専用ベンチマークツールは、OS のファイルシステムを介さず直接 NVMe コマンドで計測します。
+          本ベンチマークは <code>FileStream</code>（.NET の標準ファイル API）を使うため、
+          OS のファイルシステムオーバーヘッド、I/O スケジューラ、セキュリティソフトのリアルタイムスキャン等が介在します。
+          <strong>つまり「実際の AI ワークロードが体感する速度」</strong>に近い値が得られます。
+        </p>
+        <div class="exp-hypothesis">
+          AI アプリケーション（Ollama, ComfyUI 等）もファイル API 経由でモデルを読むため、
+          カタログスペックではなくこの「実効速度」がモデルロード時間を決定します。
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <h3>発見 2: OS ドライブは不利</h3>
+        <p>
+          C: (OS ドライブ) は D: (データドライブ) より一貫して低速。
+          1024MB Read では <strong>C: 888 MB/s vs D: 1,266 MB/s（約 1.4 倍差）</strong>。
+        </p>
+        <p style="margin-top:8px;">
+          <strong>理由:</strong> OS ドライブは Windows Update、検索インデックス (Windows Search)、
+          アンチウイルス、Superfetch/SysMain、ページファイル I/O 等のバックグラウンド処理が常時走っており、
+          AI モデルの読み出しと帯域を奪い合います。
+        </p>
+        <div class="exp-hypothesis">
+          AI モデルの保存先は OS ドライブとは別の専用ドライブにすべき。
+          Samsung 9100 PRO のような大容量 NVMe を AI 専用ドライブとして運用することで、
+          バックグラウンド I/O の影響を排除し、安定した高スループットを確保できます。
+        </div>
+      </div>
+
+      <div class="exp-card">
+        <h3>発見 3: 計測値の分散が大きい</h3>
+        <p>
+          同一条件の 3 回計測でも、最大で <strong>2〜3 倍の開き</strong>（D: 512MB Read: 379〜1,475 MB/s）が発生。
+          <code>WriteThrough</code>（OS キャッシュバイパス）や <code>SequentialScan</code> ヒントを使っても、
+          OS レベルの I/O 競合を完全には排除できません。
+        </p>
+        <p style="margin-top:8px;">
+          <strong>対策:</strong> 本ベンチマークでは中央値（median）を採用し、外れ値の影響を軽減しています。
+          本実験環境（RTX PRO 6000 ワークステーション）では、よりクリーンな環境での計測が可能になる見込みです。
+        </p>
+        <div class="exp-hypothesis">
+          ラップトップ環境は熱やバッテリー制御による I/O スロットリングの影響もあり、
+          デスクトップ / ワークステーション環境の方がストレージ本来の性能を発揮しやすい。
+        </div>
+      </div>
+    </div>
+
+    <div class="exp-card" style="margin-top:20px; border-left: 4px solid #0969da;">
+      <h3>本ベンチマークの位置づけ</h3>
+      <p>
+        disk-speed-bench は CrystalDiskMark のような「SSD 単体の最大性能」を測るツールではなく、
+        <strong>「AI アプリケーションが実際に体感するストレージ速度」</strong>を計測するベンチマークです。
+        OS のファイルシステム、バックグラウンドプロセス、メモリ状況といった現実の条件を含めた実効速度を測定し、
+        ストレージ選びの実用的な判断材料を提供します。
+      </p>
+      <p style="margin-top:8px;">
+        テストサイズは <strong>256MB / 512MB / 1024MB</strong> の 3 段階で実施し、
+        OS キャッシュの影響度合いやバックグラウンド I/O との干渉を可視化しています。
+        AI モデルファイルは 1GB〜数十 GB と大きいため、1024MB 以上のテストサイズがより現実に近い指標となります。
+      </p>
+    </div>
+  </div>
+</section>
 
 <!-- 予備調査からの仮説 -->
 <section>
