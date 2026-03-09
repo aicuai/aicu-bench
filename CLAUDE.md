@@ -201,8 +201,17 @@ Get-ChildItem .\results -Recurse -Filter "*.json" | ForEach-Object {
 ```
 
 ### 結果を LP に反映
-結果 JSON を `results/` に配置し、`site/index.html` のデータセクションを更新。
-`main` に push すると Cloudflare Pages に自動デプロイ。
+```powershell
+# 1. results/ の JSON から site/data.json を生成
+python .\scripts\update_site.py
+
+# 2. main に push → Cloudflare Pages に自動デプロイ
+git add site/data.json
+git commit -m "Update benchmark results"
+git push
+```
+
+LP は `data.json` を fetch して計測結果テーブルを動的に表示する。
 
 ---
 

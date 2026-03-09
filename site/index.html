@@ -181,6 +181,57 @@ claude</code></pre>
   </div>
 </section>
 
+<!-- 計測結果 -->
+<section id="results">
+  <div class="container">
+    <h2 class="section-title">計測結果</h2>
+    <div id="results-area">
+      <p style="color: var(--text-secondary);">計測データ読み込み中...</p>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  fetch('data.json').then(r=>r.json()).then(function(data){
+    var area = document.getElementById('results-area');
+    if(!data.experiments || Object.keys(data.experiments).length===0){
+      area.innerHTML='<p style="color:var(--text-secondary)">計測データは実験完了後に公開されます。</p>';
+      return;
+    }
+    var labels={
+      vibe_local_load:'Ollama モデルロード時間',
+      vibe_local_codegen:'コード生成時間',
+      comfyui_imggen:'画像生成 (z-image-turbo)',
+      comfyui_ltx:'動画生成 (LTX-Video)',
+      qwen3tts:'TTS 初動時間'
+    };
+    var driveNames={D:'9100 PRO (Gen5)',E:'870 QVO (SATA)',F:'HDD',G:'9100 PRO (ICY DOCK)'};
+    var html='';
+    for(var key in data.experiments){
+      var exp=data.experiments[key];
+      html+='<h3 style="margin:24px 0 12px;font-size:1.1rem">'+(labels[key]||key)+'</h3>';
+      html+='<table class="storage-table"><thead><tr><th>ドライブ</th><th>中央値 (秒)</th></tr></thead><tbody>';
+      var order=exp.drive_order||Object.keys(exp.drives);
+      for(var i=0;i<order.length;i++){
+        var d=order[i];
+        if(!exp.drives[d])continue;
+        var v=exp.drives[d].median_s;
+        var vs=v!=null?v.toFixed(3):'—';
+        html+='<tr><td>'+d+': '+(driveNames[d]||d)+'</td><td>'+vs+'</td></tr>';
+      }
+      html+='</tbody></table>';
+    }
+    if(data.updated){
+      html+='<p style="margin-top:20px;font-size:0.85rem;color:var(--text-secondary)">Last updated: '+data.updated+'</p>';
+    }
+    area.innerHTML=html;
+  }).catch(function(){
+    document.getElementById('results-area').innerHTML='<p style="color:var(--text-secondary)">計測データは実験完了後に公開されます。</p>';
+  });
+})();
+</script>
+
 <!-- 関連リンク -->
 <section>
   <div class="container">
