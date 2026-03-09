@@ -64,11 +64,18 @@ ai-storage-bench/
 ├── README.md
 ├── .gitignore
 ├── site/                              # LP (bench.aicu.jp)
-│   ├── index.html
-│   └── style.css
+│   ├── index.html                     # LP 本体（data.json を fetch して結果表示）
+│   ├── style.css
+│   └── data.json                      # 計測結果データ（update_site.py で生成）
+├── CLAUDE.md                          # Claude Code スキルファイル
+├── workflows/                         # ComfyUI ワークフロー JSON（aicubench 由来）
+│   ├── z_image_turbo.json             # z-image-turbo (UNETLoader+Qwen3+AuraFlow)
+│   ├── flux1_schnell.json             # FLUX.1 Schnell
+│   └── sd15.json                      # Stable Diffusion 1.5
 ├── scripts/                           # 共通スクリプト
 │   ├── collect_sysinfo.ps1            # nvidia-smi・CPU・RAM・ストレージ情報収集
-│   └── run_all_benchmarks.ps1         # 全実験一括実行（ランスルーテスト）
+│   ├── run_all_benchmarks.ps1         # 全実験一括実行（ランスルーテスト）
+│   └── update_site.py                 # results/ → site/data.json 生成
 ├── vibe-local-bench/                  # Experiment 1
 │   ├── bench_load.ps1                 # モデルロード時間計測
 │   ├── bench_codegen.ps1              # コード生成時間計測
@@ -147,6 +154,7 @@ ai-storage-bench/
 - `cold_start_s`: コールドスタート時間（モデルロード込み、秒）
 - `warm_batch_s`: ウォームバッチ合計時間（秒）
 - `image_results[]`: プロンプトごとの `elapsed_s`, `cold_start` フラグ
+- `model`: ワークフロー構成情報（unet, clip, vae, sampler, steps, cfg, resolution）
 
 ### comfyui-ltx-bench 固有フィールド
 
@@ -207,8 +215,46 @@ Get-Content .\results\vibe-local-bench\load_D.json | ConvertFrom-Json
 Get-ChildItem .\results -Recurse -Filter "*.json"
 ```
 
-### LP 更新 → デプロイ
-`site/` 配下を編集して `main` に push すると GitHub Actions 経由で Cloudflare Pages に自動デプロイされる。
+### 結果 → LP 反映 → デプロイ
+
+計測結果を LP に反映するパイプライン：
+
+```powershell
+# 1. ベンチマーク実行（results/ に JSON 出力）
+.\scripts\run_all_benchmarks.ps1 -Runs 3
+
+# 2. results/ の JSON から site/data.json を生成
+python .\scripts\update_site.py
+
+# 3. コミット & push → Cloudflare Pages に自動デプロイ
+git add site/data.json
+git commit -m "Update benchmark results"
+git push
+```
+
+LP (`site/index.html`) は `data.json` を fetch して計測結果テーブルを動的に表示する。
+`main` に push すると GitHub Actions → Cloudflare Pages に自動デプロイされる。
+
+### ワークフロー JSON（aicubench 由来）
+
+`workflows/` ディレクトリに ComfyUI API 形式のテスト済みワークフローを配置。
+ベンチマークスクリプトはこれを読み込んで実行する。
+
+| ファイル | モデル構成 | ステップ |
+|---------|----------|---------|
+| `z_image_turbo.json` | UNETLoader + CLIPLoader(qwen_3_4b) + VAELoader(ae) + AuraFlow | 4 steps, cfg=1 |
+| `flux1_schnell.json` | CheckpointLoaderSimple(flux1-schnell-fp8) | 4 steps, cfg=1 |
+| `sd15.json` | CheckpointLoaderSimple(v1-5-pruned-emaonly-fp16) | 20 steps, cfg=8 |
+
+### Claude Code によるセットアップ
+
+トラブルシューティングや初期の実験環境のセットアップを高速に進めるため、**[Claude Code](https://j.aicu.ai/_Claude)** を使用。無料で利用可能。
+
+本リポジトリの `CLAUDE.md` を読み込ませるだけで、環境構築からベンチマーク実行、結果分析まで AI が支援する。
+
+```powershell
+claude   # CLAUDE.md を自動読み込み
+```
 
 ---
 
