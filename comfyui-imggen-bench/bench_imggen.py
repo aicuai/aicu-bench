@@ -316,7 +316,8 @@ def median(values):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ComfyUI z-image-turbo Benchmark")
+    global COMFYUI_HOST
+    parser = argparse.ArgumentParser(description="ComfyUI Image Generation Benchmark")
     parser.add_argument("--drive", choices=DRIVES, help="テスト対象ドライブ")
     parser.add_argument("--all-drives", action="store_true", help="全ドライブで実行")
     parser.add_argument("--runs", type=int, default=DEFAULT_RUNS, help="計測回数")
@@ -326,9 +327,10 @@ def main():
         default=os.path.join(os.path.dirname(__file__), "..", "results", "comfyui-imggen-bench"),
     )
     parser.add_argument("--host", type=str, default=COMFYUI_HOST, help="ComfyUI ホスト")
+    parser.add_argument("--workflow", type=str, default=None,
+                        help="外部ワークフロー JSON パス (workflows/sdxl.json 等)")
     args = parser.parse_args()
 
-    global COMFYUI_HOST
     COMFYUI_HOST = args.host
 
     output_dir = Path(args.output_dir)
@@ -336,9 +338,24 @@ def main():
 
     drives = DRIVES if args.all_drives else ([args.drive] if args.drive else DRIVES)
 
-    print("\n=== comfyui-imggen-bench: z-image-turbo Benchmark ===")
-    print(f"Model: UNETLoader(z_image_turbo_bf16) + CLIPLoader(qwen_3_4b) + VAELoader(ae)")
-    print(f"Sampler: res_multistep, 4 steps, cfg=1")
+    # 外部ワークフローが指定された場合はそれを使用
+    external_workflow = None
+    workflow_name = "z_image_turbo"
+    if args.workflow:
+        wf_path = Path(args.workflow)
+        if wf_path.exists():
+            with open(wf_path, encoding="utf-8") as f:
+                external_workflow = json.load(f)
+            workflow_name = wf_path.stem
+            print(f"\n=== comfyui-imggen-bench: {workflow_name} Benchmark ===")
+            print(f"Workflow: {args.workflow}")
+        else:
+            print(f"WARNING: Workflow not found: {args.workflow}, using default")
+
+    if not external_workflow:
+        print("\n=== comfyui-imggen-bench: z-image-turbo Benchmark ===")
+        print(f"Model: UNETLoader(z_image_turbo_bf16) + CLIPLoader(qwen_3_4b) + VAELoader(ae)")
+        print(f"Sampler: res_multistep, 4 steps, cfg=1")
     print(f"Drives: {drives} | Runs: {args.runs}")
 
     sys_stats = get_comfyui_system_stats()
@@ -353,42 +370,109 @@ def main():
         print(f"  Drive {drive}")
         print(f"{'='*40}")
 
-        all_runs = []
-        for i in range(1, args.runs + 1):
-            result = run_benchmark(drive, i, args.runs)
-            all_runs.append(result)
+        if external_workflow:
+            # 外部ワークフローモード: cold/warm を各 runs 回計測
+            all_runs = []
+            for i in range(1, args.runs + 1):
+                print(f"\n[{drive}] Run {i}/{args.runs}")
 
-        cold_median = median([r["cold_start_s"] for r in all_runs if r["cold_start_s"] is not None])
-        warm_median = median([r["warm_batch_s"] for r in all_runs if r["warm_batch_s"] is not None])
+                # コールドスタート
+                print(f"  [cold] {workflow_name}...", end=" ")
+                free_comfyui_memory()
+                gpu_before = get_nvidia_smi()
+                start = time.time()
+                try:
+                    pid = queue_prompt(external_workflow)
+                    result = wait_for_completion(pid, timeout=600)
+                    elapsed = round(time.time() - start, 3)
+                    success = result.get("success", False) if isinstance(result, dict) else bool(result)
+                except Exception as e:
+                    elapsed = round(time.time() - start, 3)
+                    success = False
+                    print(f"ERROR: {e}")
+                gpu_after = get_nvidia_smi()
+                print(f"{elapsed}s ({'OK' if success else 'FAIL'})")
+                cold_time = elapsed if success else None
 
-        summary = {
-            "experiment": "comfyui-imggen-bench",
-            "test": "z_image_turbo",
-            "drive": drive,
-            "runs": args.runs,
-            "cold_start_median_s": cold_median,
-            "warm_batch_median_s": warm_median,
-            "model": {
-                "unet": "z_image_turbo_bf16.safetensors",
-                "clip": "qwen_3_4b.safetensors",
-                "vae": "ae.safetensors",
-                "sampler": "res_multistep",
-                "steps": 4,
-                "cfg": 1,
-                "resolution": "832x1216",
-            },
-            "prompts": [{"id": p["id"], "prompt": p["prompt"]} for p in TEST_PROMPTS],
-            "comfyui_info": sys_stats,
-            "results": all_runs,
-            "generated": datetime.now().isoformat(),
-        }
+                # ウォームスタート
+                print(f"  [warm] {workflow_name}...", end=" ")
+                gpu_before_w = get_nvidia_smi()
+                start = time.time()
+                try:
+                    pid = queue_prompt(external_workflow)
+                    result = wait_for_completion(pid, timeout=600)
+                    elapsed_w = round(time.time() - start, 3)
+                    success_w = result.get("success", False) if isinstance(result, dict) else bool(result)
+                except Exception as e:
+                    elapsed_w = round(time.time() - start, 3)
+                    success_w = False
+                gpu_after_w = get_nvidia_smi()
+                print(f"{elapsed_w}s ({'OK' if success_w else 'FAIL'})")
+                warm_time = elapsed_w if success_w else None
 
-        out_file = output_dir / f"imggen_{drive}.json"
+                all_runs.append({
+                    "run": i,
+                    "cold_start_s": cold_time,
+                    "warm_start_s": warm_time,
+                    "gpu_before": gpu_before,
+                    "gpu_after_cold": gpu_after,
+                    "gpu_after_warm": gpu_after_w,
+                    "timestamp": datetime.now().isoformat(),
+                })
+
+            cold_median = median([r["cold_start_s"] for r in all_runs if r["cold_start_s"] is not None])
+            warm_median = median([r["warm_start_s"] for r in all_runs if r["warm_start_s"] is not None])
+
+            summary = {
+                "experiment": "comfyui-imggen-bench",
+                "test": workflow_name,
+                "drive": drive,
+                "runs": args.runs,
+                "cold_start_median_s": cold_median,
+                "warm_start_median_s": warm_median,
+                "workflow_file": str(args.workflow),
+                "comfyui_info": sys_stats,
+                "results": all_runs,
+                "generated": datetime.now().isoformat(),
+            }
+        else:
+            # デフォルトモード: z-image-turbo (複数プロンプト)
+            all_runs = []
+            for i in range(1, args.runs + 1):
+                result = run_benchmark(drive, i, args.runs)
+                all_runs.append(result)
+
+            cold_median = median([r["cold_start_s"] for r in all_runs if r["cold_start_s"] is not None])
+            warm_median = median([r["warm_batch_s"] for r in all_runs if r["warm_batch_s"] is not None])
+
+            summary = {
+                "experiment": "comfyui-imggen-bench",
+                "test": "z_image_turbo",
+                "drive": drive,
+                "runs": args.runs,
+                "cold_start_median_s": cold_median,
+                "warm_batch_median_s": warm_median,
+                "model": {
+                    "unet": "z_image_turbo_bf16.safetensors",
+                    "clip": "qwen_3_4b.safetensors",
+                    "vae": "ae.safetensors",
+                    "sampler": "res_multistep",
+                    "steps": 4,
+                    "cfg": 1,
+                    "resolution": "832x1216",
+                },
+                "prompts": [{"id": p["id"], "prompt": p["prompt"]} for p in TEST_PROMPTS],
+                "comfyui_info": sys_stats,
+                "results": all_runs,
+                "generated": datetime.now().isoformat(),
+            }
+
+        out_file = output_dir / f"imggen_{workflow_name}_{drive}.json"
         with open(out_file, "w", encoding="utf-8") as f:
             json.dump(summary, f, indent=2, ensure_ascii=False)
 
         print(f"\n  Cold start median: {cold_median}s")
-        print(f"  Warm batch median: {warm_median}s")
+        print(f"  Warm start median: {warm_median}s")
         print(f"  Results saved: {out_file}")
 
     print("\n=== comfyui-imggen-bench: Complete! ===\n")

@@ -4,17 +4,26 @@
 .DESCRIPTION
   Claude Code なしで一気に走る完全自動スクリプト。
 
-  Phase 1: 前提条件チェック (ollama, python, nvidia-smi)
-  Phase 2: テスト開始時のディスク残量チェック
-  Phase 3: システム情報収集
-  Phase 4: モデルダウンロード（タイミング計測）
-  Phase 5: ベンチマーク実行
-  Phase 6: サイトデータ更新 (data.json)
-  Phase 7: 巨大ファイル（モデル）を削除
-  Phase 8: テスト終了時のディスク残量チェック + サマリー
+  Pattern A (Full mode - default):
+    Phase 1: 前提条件チェック (ollama, python, nvidia-smi)
+    Phase 2: テスト開始時のディスク残量チェック
+    Phase 3: システム情報収集
+    Phase 4: モデルダウンロード（タイミング計測）
+    Phase 5: ベンチマーク実行
+    Phase 6: サイトデータ更新 (data.json)
+    Phase 7: 巨大ファイル（モデル）を削除
+    Phase 8: テスト終了時のディスク残量チェック + サマリー
+    Phase 9: 結果送信
+    Phase 10: HTML レポート生成
+
+  Pattern B (Sequential mode):
+    各実験ごとに ダウンロード -> ベンチマーク -> 削除 をループ。
+    SSD 容量を節約しながら全実験を実行。
 
   結果ディレクトリには JSON ログ、生成 HTML/画像/動画/MP3 のみ残る。
 
+.PARAMETER Mode
+  実行モード: "Full" (デフォルト, Pattern A) または "Sequential" (Pattern B)
 .PARAMETER Runs
   各実験の計測回数 (デフォルト: 3)
 .PARAMETER Fresh
@@ -27,9 +36,16 @@
   モデルダウンロードをスキップ（既にモデルが配置済みの場合）
 .PARAMETER SkipCleanup
   テスト後のモデル削除をスキップ
+.PARAMETER ComfyUIPath
+  ComfyUI のインストールパス (デフォルト: D:\ComfyUI or C:\ComfyUI を自動検出)
+.PARAMETER ComfyUIArgs
+  ComfyUI 起動時の引数 (デフォルト: "--lowvram --disable-cuda-malloc")
 .EXAMPLE
-  # 完全自動実行（推奨）
+  # 完全自動実行（推奨・Full モード）
   .\scripts\run_all_benchmarks.ps1
+
+  # Sequential モード（SSD 容量節約）
+  .\scripts\run_all_benchmarks.ps1 -Mode Sequential
 
   # フレッシュスタート（古い結果を削除して再実行）
   .\scripts\run_all_benchmarks.ps1 -Fresh
@@ -39,14 +55,21 @@
 
   # モデルは配置済み、クリーンアップもしない（開発用）
   .\scripts\run_all_benchmarks.ps1 -SkipDownload -SkipCleanup
+
+  # ComfyUI パスを明示指定
+  .\scripts\run_all_benchmarks.ps1 -ComfyUIPath "E:\ComfyUI"
 #>
 param(
+    [ValidateSet("Full", "Sequential")]
+    [string]$Mode = "Full",
     [int]$Runs = 3,
     [switch]$Fresh,
     [switch]$SkipComfyUI,
     [switch]$SkipTTS,
     [switch]$SkipDownload,
-    [switch]$SkipCleanup
+    [switch]$SkipCleanup,
+    [string]$ComfyUIPath = "",
+    [string]$ComfyUIArgs = "--lowvram --disable-cuda-malloc"
 )
 
 # エラーでもスクリプト全体は止めない（個別 try-catch で処理）
@@ -57,10 +80,24 @@ $script:Errors = @()
 $RootDir = if ($PSScriptRoot) { Split-Path $PSScriptRoot -Parent } else { Split-Path -Parent (Split-Path -Parent (Resolve-Path $MyInvocation.MyCommand.Path)) }
 $ScriptsDir = Join-Path $RootDir "scripts"
 $ResultsDir = Join-Path $RootDir "results"
+$WorkflowsDir = Join-Path $RootDir "workflows"
 $SuiteStartTime = Get-Date
 
 # Ollama テスト用モデル一覧
 $OllamaModels = @("qwen3:8b", "qwen3:1.7b")
+
+# ComfyUI パス自動検出
+if (-not $ComfyUIPath) {
+    foreach ($candidate in @("D:\ComfyUI", "C:\ComfyUI")) {
+        if (Test-Path (Join-Path $candidate "main.py")) {
+            $ComfyUIPath = $candidate
+            break
+        }
+    }
+}
+# ComfyUI プロセス管理フラグ
+$script:ComfyUIStartedByUs = $false
+$script:ComfyUIPid = $null
 
 # ── ヘルパー関数 ──
 
@@ -152,7 +189,7 @@ function Invoke-OllamaPull {
 
     # モデルが既に存在するかチェック（ファイルサイズベース）
     $existingSize = Get-DirectorySize -Path $modelsPath
-    # qwen3:8b ≈ 5200MB, qwen3:1.7b ≈ 1400MB — 既に十分なサイズがあればスキップ
+    # qwen3:8b ~ 5200MB, qwen3:1.7b ~ 1400MB -- 既に十分なサイズがあればスキップ
     $expectedMinMB = if ($ModelName -match '8b') { 4000 } else { 1000 }
 
     # Ollama API でチェック（別ポートサーバーを一時起動）
@@ -187,7 +224,7 @@ function Invoke-OllamaPull {
         }
     }
 
-    # ダウンロード実行（デフォルト Ollama 経由で pull → 手動コピーではなく、
+    # ダウンロード実行（デフォルト Ollama 経由で pull -> 手動コピーではなく、
     # OLLAMA_MODELS を設定した別インスタンスで pull する）
     Write-Host "    Downloading $ModelName to ${DriveLetter}:\ollama\models ..." -ForegroundColor Cyan
     $env:OLLAMA_MODELS = $modelsPath
@@ -220,6 +257,93 @@ function Invoke-OllamaPull {
     }
 }
 
+function Test-ComfyUIRunning {
+    <# ComfyUI が起動しているか確認 #>
+    param([int]$Port = 8188)
+    try {
+        Invoke-RestMethod -Uri "http://127.0.0.1:${Port}/system_stats" -TimeoutSec 3 | Out-Null
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+function Start-ComfyUIIfNeeded {
+    <# ComfyUI が起動していなければ起動する #>
+    if (Test-ComfyUIRunning) {
+        Write-Host "    ComfyUI already running on port 8188" -ForegroundColor Green
+        return $true
+    }
+
+    if (-not $ComfyUIPath -or -not (Test-Path (Join-Path $ComfyUIPath "main.py"))) {
+        Write-Host "    ComfyUI not found at '$ComfyUIPath' (set -ComfyUIPath)" -ForegroundColor Red
+        Log-Error "comfyui" "ComfyUI not found at '$ComfyUIPath'"
+        return $false
+    }
+
+    Write-Host "    Starting ComfyUI from $ComfyUIPath ($ComfyUIArgs)..." -ForegroundColor Gray
+    $mainPy = Join-Path $ComfyUIPath "main.py"
+    $argList = "$mainPy $ComfyUIArgs"
+    $proc = Start-Process -FilePath $pyCmd -ArgumentList $argList -WorkingDirectory $ComfyUIPath `
+        -WindowStyle Hidden -PassThru -RedirectStandardError "$env:TEMP\comfyui_stderr.log"
+    $script:ComfyUIPid = $proc.Id
+    $script:ComfyUIStartedByUs = $true
+
+    # 起動待機 (最大60秒)
+    for ($w = 0; $w -lt 30; $w++) {
+        Start-Sleep -Seconds 2
+        if (Test-ComfyUIRunning) {
+            Write-Host "    ComfyUI started (PID=$($proc.Id))" -ForegroundColor Green
+            return $true
+        }
+    }
+    Write-Host "    ComfyUI failed to start within 60 seconds" -ForegroundColor Red
+    Log-Error "comfyui" "ComfyUI failed to start within 60 seconds"
+    return $false
+}
+
+function Stop-ComfyUIIfStartedByUs {
+    <# スクリプトが起動した ComfyUI を停止する #>
+    if ($script:ComfyUIStartedByUs -and $script:ComfyUIPid) {
+        Write-Host "    Stopping ComfyUI (PID=$($script:ComfyUIPid))..." -ForegroundColor Gray
+        try {
+            Stop-Process -Id $script:ComfyUIPid -Force -ErrorAction SilentlyContinue
+            Write-Host "    ComfyUI stopped" -ForegroundColor Green
+        } catch {
+            Write-Host "    Warning: could not stop ComfyUI: $_" -ForegroundColor DarkYellow
+        }
+        $script:ComfyUIStartedByUs = $false
+        $script:ComfyUIPid = $null
+    }
+}
+
+function Remove-OllamaModels {
+    <# 指定ドライブの Ollama モデルを削除し、結果を返す #>
+    param([string]$DriveLetter)
+    $modelsPath = "${DriveLetter}:\ollama\models"
+    if (Test-Path $modelsPath) {
+        $sizeBefore = Get-DirectorySize -Path $modelsPath
+        Write-Host "    ${DriveLetter}:\ollama\models ($sizeBefore MB) -> deleting..." -ForegroundColor Gray
+        try {
+            Remove-Item -Path $modelsPath -Recurse -Force -ErrorAction Stop
+            Write-Host "      Deleted ($sizeBefore MB freed)" -ForegroundColor Green
+            return [ordered]@{
+                drive = $DriveLetter; path = $modelsPath
+                freed_mb = $sizeBefore; success = $true
+            }
+        } catch {
+            $sizeAfter = Get-DirectorySize -Path $modelsPath
+            Write-Host "      WARNING: partial cleanup: $_" -ForegroundColor DarkYellow
+            return [ordered]@{
+                drive = $DriveLetter; path = $modelsPath
+                freed_mb = [math]::Round($sizeBefore - $sizeAfter, 2); success = $false
+                error = "$_"
+            }
+        }
+    }
+    return $null
+}
+
 # ══════════════════════════════════════════════════════
 # テスト対象ドライブの自動検出
 # ══════════════════════════════════════════════════════
@@ -248,6 +372,7 @@ Write-Host @"
  ========================================================
    ai-storage-bench - Full Benchmark Suite (Autonomous)
  ========================================================
+   Mode                : $Mode
    Runs per experiment : $Runs
    Test drives         : $($TestDrives -join ', ')
    Fresh run           : $Fresh
@@ -255,6 +380,8 @@ Write-Host @"
    Skip TTS            : $SkipTTS
    Skip Download       : $SkipDownload
    Skip Cleanup        : $SkipCleanup
+   ComfyUI path        : $(if ($ComfyUIPath) { $ComfyUIPath } else { "(not found)" })
+   ComfyUI args        : $ComfyUIArgs
    Start               : $($SuiteStartTime.ToString("yyyy-MM-dd HH:mm:ss"))
  ========================================================
 
@@ -361,157 +488,476 @@ $sysInfoSw.Stop()
 Write-Host "  System info collected in $([math]::Round($sysInfoSw.Elapsed.TotalSeconds, 1))s" -ForegroundColor Green
 
 # ══════════════════════════════════════════════════════
-# Phase 4: モデルダウンロード（タイミング計測）
+# Mode dispatch: Full (Pattern A) vs Sequential (Pattern B)
 # ══════════════════════════════════════════════════════
+
 $downloadResults = @()
 $totalDownloadTime = 0
-
-if (-not $SkipDownload) {
-    Write-Host "`n[Phase 4] Model download (timed)" -ForegroundColor Yellow
-    $downloadSw = [System.Diagnostics.Stopwatch]::StartNew()
-
-    foreach ($d in $TestDrives) {
-        Write-Host "`n  Drive ${d}:" -ForegroundColor Cyan
-        foreach ($model in $OllamaModels) {
-            try {
-                $dlResult = Invoke-OllamaPull -ModelName $model -DriveLetter $d
-                $downloadResults += $dlResult
-            } catch {
-                Log-Error "download" "Failed to pull $model to ${d}: $_"
-                $downloadResults += [ordered]@{
-                    model = $model; drive = $d; elapsed_s = 0
-                    success = $false; error = "$_"
-                }
-            }
-        }
-    }
-
-    $downloadSw.Stop()
-    $totalDownloadTime = [math]::Round($downloadSw.Elapsed.TotalSeconds, 2)
-    Write-Host "`n  Total download phase: ${totalDownloadTime}s" -ForegroundColor Green
-} else {
-    Write-Host "`n[Phase 4] SKIP: Model download (--SkipDownload)" -ForegroundColor DarkYellow
-}
-
-# ══════════════════════════════════════════════════════
-# Phase 5: ベンチマーク実行
-# ══════════════════════════════════════════════════════
-Write-Host "`n[Phase 5] Running benchmarks..." -ForegroundColor Yellow
-$benchSw = [System.Diagnostics.Stopwatch]::StartNew()
+$totalBenchTime = 0
 $stepTimes = [ordered]@{}
+$cleanupResults = @()
+$sequentialPhases = @()
 
-# ── 5a: vibe-local-bench ──
-Write-Host "`n  [5a] vibe-local-bench (Ollama model load & codegen)..." -ForegroundColor Cyan
-$sw5a = [System.Diagnostics.Stopwatch]::StartNew()
-$vibeScript = Join-Path $RootDir "vibe-local-bench\run_all.ps1"
-if (Test-Path $vibeScript) {
-    try {
-        & $vibeScript -Runs $Runs
-    } catch {
-        Log-Error "vibe-local" "$_"
-    }
-} else {
-    Write-Host "    SKIP: $vibeScript not found" -ForegroundColor DarkYellow
-}
-$sw5a.Stop()
-$stepTimes["vibe_local_bench"] = [math]::Round($sw5a.Elapsed.TotalSeconds, 2)
-Write-Host "    vibe-local-bench: $([math]::Round($sw5a.Elapsed.TotalMinutes, 1)) min" -ForegroundColor Gray
+if ($Mode -eq "Full") {
+    # ══════════════════════════════════════════════════════
+    # Pattern A: Full mode (original behavior)
+    # ══════════════════════════════════════════════════════
 
-# ── 5a2: disk-speed-bench ──
-Write-Host "`n  [5a2] disk-speed-bench (sequential read/write)..." -ForegroundColor Cyan
-$sw5a2 = [System.Diagnostics.Stopwatch]::StartNew()
-$diskBenchScript = Join-Path $RootDir "disk-speed-bench\bench_diskspeed.ps1"
-if (Test-Path $diskBenchScript) {
-    $diskSizes = @(256, 512, 1024)
-    foreach ($d in $TestDrives) {
-        $diskFree = (Get-DriveSpace -DriveLetter $d).free_gb
-        if ($diskFree -gt 2) {
-            foreach ($sizeMB in $diskSizes) {
+    # ── Phase 4: モデルダウンロード ──
+    if (-not $SkipDownload) {
+        Write-Host "`n[Phase 4] Model download (timed)" -ForegroundColor Yellow
+        $downloadSw = [System.Diagnostics.Stopwatch]::StartNew()
+
+        foreach ($d in $TestDrives) {
+            Write-Host "`n  Drive ${d}:" -ForegroundColor Cyan
+            foreach ($model in $OllamaModels) {
                 try {
-                    & $diskBenchScript -Drive $d -Runs $Runs -SizeMB $sizeMB
+                    $dlResult = Invoke-OllamaPull -ModelName $model -DriveLetter $d
+                    $downloadResults += $dlResult
                 } catch {
-                    Log-Error "disk-speed" "Drive ${d} ${sizeMB}MB: $_"
+                    Log-Error "download" "Failed to pull $model to ${d}: $_"
+                    $downloadResults += [ordered]@{
+                        model = $model; drive = $d; elapsed_s = 0
+                        success = $false; error = "$_"
+                    }
                 }
             }
-        } else {
-            Write-Host "    SKIP ${d}: not enough free space ($diskFree GB)" -ForegroundColor DarkYellow
         }
-    }
-} else {
-    Write-Host "    SKIP: $diskBenchScript not found" -ForegroundColor DarkYellow
-}
-$sw5a2.Stop()
-$stepTimes["disk_speed_bench"] = [math]::Round($sw5a2.Elapsed.TotalSeconds, 2)
 
-# ── 5b: comfyui-imggen-bench ──
-if (-not $SkipComfyUI) {
-    Write-Host "`n  [5b] comfyui-imggen-bench (z-image-turbo)..." -ForegroundColor Cyan
-    $sw5b = [System.Diagnostics.Stopwatch]::StartNew()
-    $imggenScript = Join-Path $RootDir "comfyui-imggen-bench\bench_imggen.py"
-    if (Test-Path $imggenScript) {
-        # ComfyUI が起動しているか確認
-        $comfyOk = $false
+        $downloadSw.Stop()
+        $totalDownloadTime = [math]::Round($downloadSw.Elapsed.TotalSeconds, 2)
+        Write-Host "`n  Total download phase: ${totalDownloadTime}s" -ForegroundColor Green
+    } else {
+        Write-Host "`n[Phase 4] SKIP: Model download (--SkipDownload)" -ForegroundColor DarkYellow
+    }
+
+    # ── Phase 5: ベンチマーク実行 ──
+    Write-Host "`n[Phase 5] Running benchmarks..." -ForegroundColor Yellow
+    $benchSw = [System.Diagnostics.Stopwatch]::StartNew()
+
+    # ── 5a: vibe-local-bench ──
+    Write-Host "`n  [5a] vibe-local-bench (Ollama model load & codegen)..." -ForegroundColor Cyan
+    $sw5a = [System.Diagnostics.Stopwatch]::StartNew()
+    $vibeScript = Join-Path $RootDir "vibe-local-bench\run_all.ps1"
+    if (Test-Path $vibeScript) {
         try {
-            Invoke-RestMethod -Uri "http://127.0.0.1:8188/system_stats" -TimeoutSec 3 | Out-Null
-            $comfyOk = $true
-        } catch {}
-        if ($comfyOk) {
-            try { & $pyCmd $imggenScript --all-drives --runs $Runs } catch { Log-Error "imggen" "$_" }
-        } else {
-            Write-Host "    SKIP: ComfyUI not running on port 8188" -ForegroundColor DarkYellow
+            & $vibeScript -Runs $Runs
+        } catch {
+            Log-Error "vibe-local" "$_"
         }
     } else {
-        Write-Host "    SKIP: $imggenScript not found" -ForegroundColor DarkYellow
+        Write-Host "    SKIP: $vibeScript not found" -ForegroundColor DarkYellow
     }
-    $sw5b.Stop()
-    $stepTimes["comfyui_imggen"] = [math]::Round($sw5b.Elapsed.TotalSeconds, 2)
-} else {
-    Write-Host "`n  [5b] SKIP: comfyui-imggen-bench (--SkipComfyUI)" -ForegroundColor DarkYellow
-}
+    $sw5a.Stop()
+    $stepTimes["vibe_local_bench"] = [math]::Round($sw5a.Elapsed.TotalSeconds, 2)
+    Write-Host "    vibe-local-bench: $([math]::Round($sw5a.Elapsed.TotalMinutes, 1)) min" -ForegroundColor Gray
 
-# ── 5c: comfyui-ltx-bench ──
-if (-not $SkipComfyUI) {
-    Write-Host "`n  [5c] comfyui-ltx-bench (LTX-Video)..." -ForegroundColor Cyan
-    $sw5c = [System.Diagnostics.Stopwatch]::StartNew()
-    $comfyScript = Join-Path $RootDir "comfyui-ltx-bench\bench_comfyui.py"
-    if (Test-Path $comfyScript) {
-        $comfyOk = $false
-        try {
-            Invoke-RestMethod -Uri "http://127.0.0.1:8188/system_stats" -TimeoutSec 3 | Out-Null
-            $comfyOk = $true
-        } catch {}
-        if ($comfyOk) {
-            try { & $pyCmd $comfyScript --all-drives --runs $Runs } catch { Log-Error "ltx" "$_" }
-        } else {
-            Write-Host "    SKIP: ComfyUI not running on port 8188" -ForegroundColor DarkYellow
+    # ── 5a2: disk-speed-bench ──
+    Write-Host "`n  [5a2] disk-speed-bench (sequential read/write)..." -ForegroundColor Cyan
+    $sw5a2 = [System.Diagnostics.Stopwatch]::StartNew()
+    $diskBenchScript = Join-Path $RootDir "disk-speed-bench\bench_diskspeed.ps1"
+    if (Test-Path $diskBenchScript) {
+        $diskSizes = @(256, 512, 1024)
+        foreach ($d in $TestDrives) {
+            $diskFree = (Get-DriveSpace -DriveLetter $d).free_gb
+            if ($diskFree -gt 2) {
+                foreach ($sizeMB in $diskSizes) {
+                    try {
+                        & $diskBenchScript -Drive $d -Runs $Runs -SizeMB $sizeMB
+                    } catch {
+                        Log-Error "disk-speed" "Drive ${d} ${sizeMB}MB: $_"
+                    }
+                }
+            } else {
+                Write-Host "    SKIP ${d}: not enough free space ($diskFree GB)" -ForegroundColor DarkYellow
+            }
         }
     } else {
-        Write-Host "    SKIP: $comfyScript not found" -ForegroundColor DarkYellow
+        Write-Host "    SKIP: $diskBenchScript not found" -ForegroundColor DarkYellow
     }
-    $sw5c.Stop()
-    $stepTimes["comfyui_ltx"] = [math]::Round($sw5c.Elapsed.TotalSeconds, 2)
-} else {
-    Write-Host "`n  [5c] SKIP: comfyui-ltx-bench (--SkipComfyUI)" -ForegroundColor DarkYellow
-}
+    $sw5a2.Stop()
+    $stepTimes["disk_speed_bench"] = [math]::Round($sw5a2.Elapsed.TotalSeconds, 2)
 
-# ── 5d: qwen3tts-bench ──
-if (-not $SkipTTS) {
-    Write-Host "`n  [5d] qwen3tts-bench (Qwen3-TTS)..." -ForegroundColor Cyan
-    $sw5d = [System.Diagnostics.Stopwatch]::StartNew()
-    $ttsScript = Join-Path $RootDir "qwen3tts-bench\bench_tts.py"
-    if (Test-Path $ttsScript) {
-        try { & $pyCmd $ttsScript --all-drives --runs $Runs } catch { Log-Error "tts" "$_" }
+    # ── 5b: comfyui-imggen-bench ──
+    if (-not $SkipComfyUI) {
+        Write-Host "`n  [5b] comfyui-imggen-bench (image generation)..." -ForegroundColor Cyan
+        $sw5b = [System.Diagnostics.Stopwatch]::StartNew()
+        $imggenScript = Join-Path $RootDir "comfyui-imggen-bench\bench_imggen.py"
+        if (Test-Path $imggenScript) {
+            $comfyOk = Start-ComfyUIIfNeeded
+            if ($comfyOk) {
+                try { & $pyCmd $imggenScript --all-drives --runs $Runs } catch { Log-Error "imggen" "$_" }
+            } else {
+                Write-Host "    SKIP: ComfyUI not available" -ForegroundColor DarkYellow
+            }
+        } else {
+            Write-Host "    SKIP: $imggenScript not found" -ForegroundColor DarkYellow
+        }
+        $sw5b.Stop()
+        $stepTimes["comfyui_imggen"] = [math]::Round($sw5b.Elapsed.TotalSeconds, 2)
     } else {
-        Write-Host "    SKIP: $ttsScript not found" -ForegroundColor DarkYellow
+        Write-Host "`n  [5b] SKIP: comfyui-imggen-bench (--SkipComfyUI)" -ForegroundColor DarkYellow
     }
-    $sw5d.Stop()
-    $stepTimes["qwen3tts"] = [math]::Round($sw5d.Elapsed.TotalSeconds, 2)
-} else {
-    Write-Host "`n  [5d] SKIP: qwen3tts-bench (--SkipTTS)" -ForegroundColor DarkYellow
-}
 
-$benchSw.Stop()
-$totalBenchTime = [math]::Round($benchSw.Elapsed.TotalSeconds, 2)
+    # ── 5c: comfyui-ltx-bench ──
+    if (-not $SkipComfyUI) {
+        Write-Host "`n  [5c] comfyui-ltx-bench (LTX-Video)..." -ForegroundColor Cyan
+        $sw5c = [System.Diagnostics.Stopwatch]::StartNew()
+        $comfyScript = Join-Path $RootDir "comfyui-ltx-bench\bench_comfyui.py"
+        if (Test-Path $comfyScript) {
+            $comfyOk = Start-ComfyUIIfNeeded
+            if ($comfyOk) {
+                try { & $pyCmd $comfyScript --all-drives --runs $Runs } catch { Log-Error "ltx" "$_" }
+            } else {
+                Write-Host "    SKIP: ComfyUI not available" -ForegroundColor DarkYellow
+            }
+        } else {
+            Write-Host "    SKIP: $comfyScript not found" -ForegroundColor DarkYellow
+        }
+        $sw5c.Stop()
+        $stepTimes["comfyui_ltx"] = [math]::Round($sw5c.Elapsed.TotalSeconds, 2)
+    } else {
+        Write-Host "`n  [5c] SKIP: comfyui-ltx-bench (--SkipComfyUI)" -ForegroundColor DarkYellow
+    }
+
+    # ComfyUI ベンチ完了 -> 起動していれば停止
+    Stop-ComfyUIIfStartedByUs
+
+    # ── 5d: qwen3tts-bench ──
+    if (-not $SkipTTS) {
+        Write-Host "`n  [5d] qwen3tts-bench (Qwen3-TTS)..." -ForegroundColor Cyan
+        $sw5d = [System.Diagnostics.Stopwatch]::StartNew()
+        $ttsScript = Join-Path $RootDir "qwen3tts-bench\bench_tts.py"
+        if (Test-Path $ttsScript) {
+            try { & $pyCmd $ttsScript --all-drives --runs $Runs } catch { Log-Error "tts" "$_" }
+        } else {
+            Write-Host "    SKIP: $ttsScript not found" -ForegroundColor DarkYellow
+        }
+        $sw5d.Stop()
+        $stepTimes["qwen3tts"] = [math]::Round($sw5d.Elapsed.TotalSeconds, 2)
+    } else {
+        Write-Host "`n  [5d] SKIP: qwen3tts-bench (--SkipTTS)" -ForegroundColor DarkYellow
+    }
+
+    $benchSw.Stop()
+    $totalBenchTime = [math]::Round($benchSw.Elapsed.TotalSeconds, 2)
+
+    # ── Phase 7: クリーンアップ ──
+    if (-not $SkipCleanup) {
+        Write-Host "`n[Phase 7] Cleanup: removing large model files..." -ForegroundColor Yellow
+
+        # ベンチ用 Ollama が残っていたら停止
+        Get-Process -Name "ollama*" -ErrorAction SilentlyContinue | Where-Object {
+            $_.Id -ne $script:DefaultOllamaPid -and $_.Id -ne (Get-Process -Name "ollama*" -ErrorAction SilentlyContinue | Where-Object { $_.StartTime -lt $SuiteStartTime } | Select-Object -First 1 -ExpandProperty Id -ErrorAction SilentlyContinue)
+        } | ForEach-Object {
+            Write-Host "  Stopping bench Ollama PID=$($_.Id)" -ForegroundColor Gray
+            Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
+        }
+
+        foreach ($d in $TestDrives) {
+            $result = Remove-OllamaModels -DriveLetter $d
+            if ($result) { $cleanupResults += $result }
+        }
+
+        # 残っているファイルの一覧（ログ・生成物のみのはず）
+        Write-Host "`n  Remaining files in results/ (should be logs + generated content only):" -ForegroundColor Gray
+        if (Test-Path $ResultsDir) {
+            $keptByExt = Get-ChildItem -Path $ResultsDir -Recurse -File -ErrorAction SilentlyContinue | Group-Object Extension | ForEach-Object {
+                $totalSize = ($_.Group | Measure-Object -Property Length -Sum).Sum
+                $sizeStr = if ($totalSize -gt 1MB) { "$([math]::Round($totalSize / 1MB, 2)) MB" } else { "$([math]::Round($totalSize / 1KB, 1)) KB" }
+                Write-Host "    $($_.Name): $($_.Count) files ($sizeStr)" -ForegroundColor DarkGray
+                [ordered]@{ extension = $_.Name; count = $_.Count; size_mb = [math]::Round($totalSize / 1MB, 2) }
+            }
+        }
+    } else {
+        Write-Host "`n[Phase 7] SKIP: Cleanup (--SkipCleanup)" -ForegroundColor DarkYellow
+    }
+
+} else {
+    # ══════════════════════════════════════════════════════
+    # Pattern B: Sequential mode
+    # ダウンロード -> ベンチマーク -> 削除 を実験ごとにループ
+    # ══════════════════════════════════════════════════════
+    Write-Host "`n[Sequential Mode] Running experiments one at a time (download -> bench -> cleanup)" -ForegroundColor Yellow
+
+    $benchSw = [System.Diagnostics.Stopwatch]::StartNew()
+
+    # ── Seq-1: Ollama (vibe-local-bench) ──
+    Write-Host "`n  ============================================" -ForegroundColor Cyan
+    Write-Host "  [Seq-1] Ollama vibe-local-bench" -ForegroundColor Cyan
+    Write-Host "  ============================================" -ForegroundColor Cyan
+    $swSeq1 = [System.Diagnostics.Stopwatch]::StartNew()
+    $seqPhase1 = [ordered]@{ name = "ollama_vibe_local"; drives = @() }
+
+    foreach ($d in $TestDrives) {
+        $driveResult = [ordered]@{ drive = $d }
+
+        # Record disk space BEFORE
+        $spaceBefore = Get-DriveSpace -DriveLetter $d
+        $driveResult["disk_before"] = $spaceBefore
+        Write-Host "`n    Drive ${d}: $($spaceBefore.free_gb) GB free (before)" -ForegroundColor Gray
+
+        # Download models (timed)
+        if (-not $SkipDownload) {
+            Write-Host "    Downloading Ollama models to ${d}:..." -ForegroundColor Cyan
+            $dlSw = [System.Diagnostics.Stopwatch]::StartNew()
+            $dlDetails = @()
+            foreach ($model in $OllamaModels) {
+                try {
+                    $dlResult = Invoke-OllamaPull -ModelName $model -DriveLetter $d
+                    $dlDetails += $dlResult
+                    $downloadResults += $dlResult
+                } catch {
+                    Log-Error "seq-download" "Failed to pull $model to ${d}: $_"
+                }
+            }
+            $dlSw.Stop()
+            $driveResult["download_s"] = [math]::Round($dlSw.Elapsed.TotalSeconds, 2)
+            $driveResult["download_details"] = $dlDetails
+            $totalDownloadTime += $driveResult["download_s"]
+        } else {
+            $driveResult["download_s"] = 0
+            $driveResult["download_skipped"] = $true
+        }
+
+        # Run benchmark
+        Write-Host "    Running vibe-local-bench on ${d}:..." -ForegroundColor Cyan
+        $vibeScript = Join-Path $RootDir "vibe-local-bench\run_all.ps1"
+        if (Test-Path $vibeScript) {
+            try {
+                & $vibeScript -Runs $Runs -Drives @($d)
+            } catch {
+                # fallback: try without -Drives parameter
+                try { & $vibeScript -Runs $Runs } catch { Log-Error "seq-vibe-local" "Drive ${d}: $_" }
+            }
+        } else {
+            Write-Host "      SKIP: $vibeScript not found" -ForegroundColor DarkYellow
+        }
+
+        # Delete models
+        if (-not $SkipCleanup) {
+            Write-Host "    Cleaning up Ollama models on ${d}:..." -ForegroundColor Gray
+            $clResult = Remove-OllamaModels -DriveLetter $d
+            if ($clResult) {
+                $cleanupResults += $clResult
+                $driveResult["cleanup"] = $clResult
+            }
+        }
+
+        # Record disk space AFTER
+        $spaceAfter = Get-DriveSpace -DriveLetter $d
+        $driveResult["disk_after"] = $spaceAfter
+        if ($spaceBefore.free_gb -and $spaceAfter.free_gb) {
+            $delta = [math]::Round($spaceAfter.free_gb - $spaceBefore.free_gb, 2)
+            Write-Host "    Drive ${d}: $($spaceAfter.free_gb) GB free (after, delta: ${delta} GB)" -ForegroundColor Gray
+        }
+        $seqPhase1["drives"] += $driveResult
+    }
+
+    $swSeq1.Stop()
+    $seqPhase1["elapsed_s"] = [math]::Round($swSeq1.Elapsed.TotalSeconds, 2)
+    $stepTimes["seq_ollama_vibe_local"] = $seqPhase1["elapsed_s"]
+    $sequentialPhases += $seqPhase1
+
+    # ── Seq-1b: disk-speed-bench (no model download needed) ──
+    Write-Host "`n  ============================================" -ForegroundColor Cyan
+    Write-Host "  [Seq-1b] Disk speed bench" -ForegroundColor Cyan
+    Write-Host "  ============================================" -ForegroundColor Cyan
+    $sw5a2 = [System.Diagnostics.Stopwatch]::StartNew()
+    $diskBenchScript = Join-Path $RootDir "disk-speed-bench\bench_diskspeed.ps1"
+    if (Test-Path $diskBenchScript) {
+        $diskSizes = @(256, 512, 1024)
+        foreach ($d in $TestDrives) {
+            $diskFree = (Get-DriveSpace -DriveLetter $d).free_gb
+            if ($diskFree -gt 2) {
+                foreach ($sizeMB in $diskSizes) {
+                    try {
+                        & $diskBenchScript -Drive $d -Runs $Runs -SizeMB $sizeMB
+                    } catch {
+                        Log-Error "disk-speed" "Drive ${d} ${sizeMB}MB: $_"
+                    }
+                }
+            } else {
+                Write-Host "    SKIP ${d}: not enough free space ($diskFree GB)" -ForegroundColor DarkYellow
+            }
+        }
+    } else {
+        Write-Host "    SKIP: $diskBenchScript not found" -ForegroundColor DarkYellow
+    }
+    $sw5a2.Stop()
+    $stepTimes["disk_speed_bench"] = [math]::Round($sw5a2.Elapsed.TotalSeconds, 2)
+
+    # ── Seq-2: ComfyUI imggen ──
+    if (-not $SkipComfyUI) {
+        Write-Host "`n  ============================================" -ForegroundColor Cyan
+        Write-Host "  [Seq-2] ComfyUI image generation" -ForegroundColor Cyan
+        Write-Host "  ============================================" -ForegroundColor Cyan
+        $swSeq2 = [System.Diagnostics.Stopwatch]::StartNew()
+        $seqPhase2 = [ordered]@{ name = "comfyui_imggen"; drives = @() }
+
+        $imggenScript = Join-Path $RootDir "comfyui-imggen-bench\bench_imggen.py"
+        # Workflow candidates
+        $imggenWorkflow = $null
+        foreach ($wf in @("sdxl.json", "aicuty_sdxl.json")) {
+            $wfPath = Join-Path $WorkflowsDir $wf
+            if (Test-Path $wfPath) { $imggenWorkflow = $wfPath; break }
+        }
+
+        if (Test-Path $imggenScript) {
+            # Start ComfyUI
+            $comfyOk = Start-ComfyUIIfNeeded
+            if ($comfyOk) {
+                foreach ($d in $TestDrives) {
+                    $driveResult = [ordered]@{ drive = $d }
+                    $spaceBefore = Get-DriveSpace -DriveLetter $d
+                    $driveResult["disk_before"] = $spaceBefore
+                    Write-Host "`n    Drive ${d}: $($spaceBefore.free_gb) GB free (before)" -ForegroundColor Gray
+
+                    # Run benchmark
+                    Write-Host "    Running comfyui-imggen-bench on ${d}:..." -ForegroundColor Cyan
+                    try {
+                        $imgArgs = @("$imggenScript", "--drive", $d, "--runs", $Runs)
+                        if ($imggenWorkflow) {
+                            $imgArgs += @("--workflow", $imggenWorkflow)
+                            Write-Host "      Workflow: $imggenWorkflow" -ForegroundColor DarkGray
+                        }
+                        & $pyCmd @imgArgs
+                    } catch {
+                        Log-Error "seq-imggen" "Drive ${d}: $_"
+                    }
+
+                    # Record disk space AFTER
+                    $spaceAfter = Get-DriveSpace -DriveLetter $d
+                    $driveResult["disk_after"] = $spaceAfter
+                    $seqPhase2["drives"] += $driveResult
+                }
+            } else {
+                Write-Host "    SKIP: ComfyUI not available" -ForegroundColor DarkYellow
+            }
+        } else {
+            Write-Host "    SKIP: $imggenScript not found" -ForegroundColor DarkYellow
+        }
+
+        $swSeq2.Stop()
+        $seqPhase2["elapsed_s"] = [math]::Round($swSeq2.Elapsed.TotalSeconds, 2)
+        $stepTimes["seq_comfyui_imggen"] = $seqPhase2["elapsed_s"]
+        $sequentialPhases += $seqPhase2
+
+        # ── Seq-3: ComfyUI video generation ──
+        Write-Host "`n  ============================================" -ForegroundColor Cyan
+        Write-Host "  [Seq-3] ComfyUI video generation" -ForegroundColor Cyan
+        Write-Host "  ============================================" -ForegroundColor Cyan
+        $swSeq3 = [System.Diagnostics.Stopwatch]::StartNew()
+        $seqPhase3 = [ordered]@{ name = "comfyui_video"; drives = @() }
+
+        $comfyScript = Join-Path $RootDir "comfyui-ltx-bench\bench_comfyui.py"
+        # Video workflow candidates: run Wan2.2 then LTX2.3
+        $videoWorkflows = @()
+        foreach ($wf in @("wan2_2_14B_t2v_api.json", "ltx2_3_t2v_api.json")) {
+            $wfPath = Join-Path $WorkflowsDir $wf
+            if (Test-Path $wfPath) { $videoWorkflows += $wfPath }
+        }
+
+        if (Test-Path $comfyScript) {
+            $comfyOk = Start-ComfyUIIfNeeded
+            if ($comfyOk) {
+                foreach ($d in $TestDrives) {
+                    $driveResult = [ordered]@{ drive = $d }
+                    $spaceBefore = Get-DriveSpace -DriveLetter $d
+                    $driveResult["disk_before"] = $spaceBefore
+                    Write-Host "`n    Drive ${d}: $($spaceBefore.free_gb) GB free (before)" -ForegroundColor Gray
+
+                    # Run benchmark with each video workflow
+                    if ($videoWorkflows.Count -gt 0) {
+                        foreach ($wfPath in $videoWorkflows) {
+                            $wfName = [System.IO.Path]::GetFileName($wfPath)
+                            Write-Host "    Running comfyui-ltx-bench on ${d}: (workflow: $wfName)..." -ForegroundColor Cyan
+                            try {
+                                & $pyCmd $comfyScript --drive $d --runs $Runs --workflow $wfPath
+                            } catch {
+                                Log-Error "seq-video" "Drive ${d} ($wfName): $_"
+                            }
+                        }
+                    } else {
+                        Write-Host "    Running comfyui-ltx-bench on ${d}: (default workflow)..." -ForegroundColor Cyan
+                        try {
+                            & $pyCmd $comfyScript --drive $d --runs $Runs
+                        } catch {
+                            Log-Error "seq-video" "Drive ${d}: $_"
+                        }
+                    }
+
+                    # Record disk space AFTER
+                    $spaceAfter = Get-DriveSpace -DriveLetter $d
+                    $driveResult["disk_after"] = $spaceAfter
+                    $seqPhase3["drives"] += $driveResult
+                }
+            } else {
+                Write-Host "    SKIP: ComfyUI not available" -ForegroundColor DarkYellow
+            }
+        } else {
+            Write-Host "    SKIP: $comfyScript not found" -ForegroundColor DarkYellow
+        }
+
+        # Stop ComfyUI after all ComfyUI benches complete
+        Stop-ComfyUIIfStartedByUs
+
+        $swSeq3.Stop()
+        $seqPhase3["elapsed_s"] = [math]::Round($swSeq3.Elapsed.TotalSeconds, 2)
+        $stepTimes["seq_comfyui_video"] = $seqPhase3["elapsed_s"]
+        $sequentialPhases += $seqPhase3
+    } else {
+        Write-Host "`n  [Seq-2/3] SKIP: ComfyUI benchmarks (--SkipComfyUI)" -ForegroundColor DarkYellow
+    }
+
+    # ── Seq-4: TTS (Qwen3-TTS via Ollama) ──
+    if (-not $SkipTTS) {
+        Write-Host "`n  ============================================" -ForegroundColor Cyan
+        Write-Host "  [Seq-4] Qwen3-TTS bench" -ForegroundColor Cyan
+        Write-Host "  ============================================" -ForegroundColor Cyan
+        $swSeq4 = [System.Diagnostics.Stopwatch]::StartNew()
+        $seqPhase4 = [ordered]@{ name = "qwen3tts"; drives = @() }
+
+        $ttsScript = Join-Path $RootDir "qwen3tts-bench\bench_tts.py"
+        if (Test-Path $ttsScript) {
+            foreach ($d in $TestDrives) {
+                $driveResult = [ordered]@{ drive = $d }
+                $spaceBefore = Get-DriveSpace -DriveLetter $d
+                $driveResult["disk_before"] = $spaceBefore
+                Write-Host "`n    Drive ${d}: $($spaceBefore.free_gb) GB free (before)" -ForegroundColor Gray
+
+                # Run TTS benchmark
+                Write-Host "    Running qwen3tts-bench on ${d}:..." -ForegroundColor Cyan
+                try {
+                    & $pyCmd $ttsScript --drive $d --runs $Runs
+                } catch {
+                    Log-Error "seq-tts" "Drive ${d}: $_"
+                }
+
+                # Record disk space AFTER
+                $spaceAfter = Get-DriveSpace -DriveLetter $d
+                $driveResult["disk_after"] = $spaceAfter
+                if ($spaceBefore.free_gb -and $spaceAfter.free_gb) {
+                    $delta = [math]::Round($spaceAfter.free_gb - $spaceBefore.free_gb, 2)
+                    Write-Host "    Drive ${d}: $($spaceAfter.free_gb) GB free (after, delta: ${delta} GB)" -ForegroundColor Gray
+                }
+                $seqPhase4["drives"] += $driveResult
+            }
+        } else {
+            Write-Host "    SKIP: $ttsScript not found" -ForegroundColor DarkYellow
+        }
+
+        $swSeq4.Stop()
+        $seqPhase4["elapsed_s"] = [math]::Round($swSeq4.Elapsed.TotalSeconds, 2)
+        $stepTimes["seq_qwen3tts"] = $seqPhase4["elapsed_s"]
+        $sequentialPhases += $seqPhase4
+    } else {
+        Write-Host "`n  [Seq-4] SKIP: qwen3tts-bench (--SkipTTS)" -ForegroundColor DarkYellow
+    }
+
+    $benchSw.Stop()
+    $totalBenchTime = [math]::Round($benchSw.Elapsed.TotalSeconds, 2)
+}
 
 # ══════════════════════════════════════════════════════
 # Phase 6: サイトデータ更新
@@ -527,59 +973,6 @@ if (Test-Path $updateScript) {
     }
 } else {
     Write-Host "  SKIP: $updateScript not found" -ForegroundColor DarkYellow
-}
-
-# ══════════════════════════════════════════════════════
-# Phase 7: クリーンアップ（巨大ファイル削除）
-# ══════════════════════════════════════════════════════
-$cleanupResults = @()
-if (-not $SkipCleanup) {
-    Write-Host "`n[Phase 7] Cleanup: removing large model files..." -ForegroundColor Yellow
-
-    # ベンチ用 Ollama が残っていたら停止
-    Get-Process -Name "ollama*" -ErrorAction SilentlyContinue | Where-Object {
-        $_.Id -ne $script:DefaultOllamaPid -and $_.Id -ne (Get-Process -Name "ollama*" -ErrorAction SilentlyContinue | Where-Object { $_.StartTime -lt $SuiteStartTime } | Select-Object -First 1 -ExpandProperty Id -ErrorAction SilentlyContinue)
-    } | ForEach-Object {
-        Write-Host "  Stopping bench Ollama PID=$($_.Id)" -ForegroundColor Gray
-        Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
-    }
-
-    foreach ($d in $TestDrives) {
-        $modelsPath = "${d}:\ollama\models"
-        if (Test-Path $modelsPath) {
-            $sizeBefore = Get-DirectorySize -Path $modelsPath
-            Write-Host "  ${d}:\ollama\models ($sizeBefore MB) -> deleting..." -ForegroundColor Gray
-            try {
-                Remove-Item -Path $modelsPath -Recurse -Force -ErrorAction Stop
-                Write-Host "    Deleted ($sizeBefore MB freed)" -ForegroundColor Green
-                $cleanupResults += [ordered]@{
-                    drive = $d; path = $modelsPath
-                    freed_mb = $sizeBefore; success = $true
-                }
-            } catch {
-                $sizeAfter = Get-DirectorySize -Path $modelsPath
-                Write-Host "    WARNING: partial cleanup: $_" -ForegroundColor DarkYellow
-                $cleanupResults += [ordered]@{
-                    drive = $d; path = $modelsPath
-                    freed_mb = [math]::Round($sizeBefore - $sizeAfter, 2); success = $false
-                    error = "$_"
-                }
-            }
-        }
-    }
-
-    # 残っているファイルの一覧（ログ・生成物のみのはず）
-    Write-Host "`n  Remaining files in results/ (should be logs + generated content only):" -ForegroundColor Gray
-    if (Test-Path $ResultsDir) {
-        $keptByExt = Get-ChildItem -Path $ResultsDir -Recurse -File -ErrorAction SilentlyContinue | Group-Object Extension | ForEach-Object {
-            $totalSize = ($_.Group | Measure-Object -Property Length -Sum).Sum
-            $sizeStr = if ($totalSize -gt 1MB) { "$([math]::Round($totalSize / 1MB, 2)) MB" } else { "$([math]::Round($totalSize / 1KB, 1)) KB" }
-            Write-Host "    $($_.Name): $($_.Count) files ($sizeStr)" -ForegroundColor DarkGray
-            [ordered]@{ extension = $_.Name; count = $_.Count; size_mb = [math]::Round($totalSize / 1MB, 2) }
-        }
-    }
-} else {
-    Write-Host "`n[Phase 7] SKIP: Cleanup (--SkipCleanup)" -ForegroundColor DarkYellow
 }
 
 # ══════════════════════════════════════════════════════
@@ -609,7 +1002,8 @@ $TotalDuration = $SuiteEndTime - $SuiteStartTime
 
 $summary = [ordered]@{
     suite              = "ai-storage-bench"
-    version            = "2.1"
+    version            = "2.2"
+    mode               = $Mode
     hostname           = $env:COMPUTERNAME
     start_time         = $SuiteStartTime.ToString("o")
     end_time           = $SuiteEndTime.ToString("o")
@@ -617,6 +1011,8 @@ $summary = [ordered]@{
     total_duration_hms = $TotalDuration.ToString("hh\:mm\:ss")
     runs_per_experiment = $Runs
     test_drives        = $TestDrives
+    comfyui_path       = $ComfyUIPath
+    comfyui_args       = $ComfyUIArgs
     disk_before        = $diskBefore
     disk_after         = $diskAfter
     disk_deltas        = $diskDeltas
@@ -637,13 +1033,18 @@ $summary = [ordered]@{
     generated          = (Get-Date -Format "o")
 }
 
+# Sequential mode: add phase details
+if ($Mode -eq "Sequential" -and $sequentialPhases.Count -gt 0) {
+    $summary["sequential_phases"] = $sequentialPhases
+}
+
 $summaryFile = Join-Path $ResultsDir "bench_summary.json"
 $summary | ConvertTo-Json -Depth 5 | Set-Content -Path $summaryFile -Encoding UTF8
 
 Write-Host @"
 
  ========================================================
-   COMPLETE
+   COMPLETE ($Mode mode)
  ========================================================
    Total time  : $($TotalDuration.ToString("hh\:mm\:ss"))
    Download    : ${totalDownloadTime}s
@@ -717,7 +1118,7 @@ if (Test-Path $summaryFile) {
         }
 
         $submitPayload = [ordered]@{
-            version       = "2.1"
+            version       = "2.2"
             hostname_hash = [BitConverter]::ToString(
                 [System.Security.Cryptography.SHA256]::Create().ComputeHash(
                     [System.Text.Encoding]::UTF8.GetBytes($env:COMPUTERNAME)

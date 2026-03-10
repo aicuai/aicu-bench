@@ -345,21 +345,32 @@ def run_benchmark(drive: str, run_number: int, runs: int, workflow: dict, workfl
     return entry
 
 
+def calc_median(values):
+    s = sorted(values)
+    n = len(s)
+    if n == 0:
+        return None
+    mid = n // 2
+    return (s[mid - 1] + s[mid]) / 2 if n % 2 == 0 else s[mid]
+
+
 def main():
-    parser = argparse.ArgumentParser(description="ComfyUI LTX-Video Benchmark")
+    global COMFYUI_HOST
+    parser = argparse.ArgumentParser(description="ComfyUI Video Generation Benchmark")
     parser.add_argument("--drive", choices=DRIVES, help="テスト対象ドライブ")
     parser.add_argument("--all-drives", action="store_true", help="全ドライブで実行")
     parser.add_argument("--runs", type=int, default=DEFAULT_RUNS, help="計測回数")
     parser.add_argument(
         "--output-dir",
         type=str,
-        default=os.path.join(os.path.dirname(__file__), "..", "results", "comfyui-ltx-bench"),
+        default=os.path.join(os.path.dirname(__file__), "..", "results", "comfyui-video-bench"),
     )
     parser.add_argument("--host", type=str, default=COMFYUI_HOST, help="ComfyUI ホスト")
     parser.add_argument("--force-fallback", action="store_true", help="LTXVノード未使用で汎用ワークフロー強制")
+    parser.add_argument("--workflow", type=str, default=None,
+                        help="外部ワークフロー JSON パス (workflows/wan2_2_14B_t2v_api.json 等)")
     args = parser.parse_args()
 
-    global COMFYUI_HOST
     COMFYUI_HOST = args.host
 
     output_dir = Path(args.output_dir)
@@ -367,18 +378,13 @@ def main():
 
     drives = DRIVES if args.all_drives else ([args.drive] if args.drive else DRIVES)
 
-    print("\n=== comfyui-ltx-bench: LTX-Video 2.3 Benchmark ===")
-    print(f"Drives: {drives} | Runs: {args.runs}\n")
-
     # ComfyUI 環境情報
     sys_stats = get_comfyui_system_stats()
     node_info = get_node_list()
-    has_ltxv = check_ltxv_nodes() and not args.force_fallback
 
     comfyui_info = {
         "system_stats": sys_stats,
         "node_info": node_info,
-        "ltxv_native_nodes": has_ltxv,
     }
 
     info_file = output_dir / "comfyui_info.json"
@@ -386,14 +392,30 @@ def main():
         json.dump(comfyui_info, f, indent=2, ensure_ascii=False)
     print(f"ComfyUI info saved: {info_file}")
 
-    if has_ltxv:
-        workflow = WORKFLOW_LTX_NATIVE
-        workflow_type = "ltxv_native"
-        print("Using LTX-Video native nodes (LTXVLoader, LTXVScheduler, ...)")
+    # ワークフロー選択
+    if args.workflow:
+        wf_path = Path(args.workflow)
+        if wf_path.exists():
+            with open(wf_path, encoding="utf-8") as f:
+                workflow = json.load(f)
+            workflow_type = wf_path.stem
+            print(f"\n=== comfyui-video-bench: {workflow_type} ===")
+            print(f"Workflow: {args.workflow}")
+        else:
+            print(f"ERROR: Workflow not found: {args.workflow}")
+            return
     else:
-        workflow = WORKFLOW_LTX
-        workflow_type = "generic_fallback"
-        print("Using generic workflow (LTXVLoader not found, using CheckpointLoaderSimple)")
+        has_ltxv = check_ltxv_nodes() and not args.force_fallback
+        if has_ltxv:
+            workflow = WORKFLOW_LTX_NATIVE
+            workflow_type = "ltxv_native"
+            print("\n=== comfyui-video-bench: LTX-Video 2.3 (native nodes) ===")
+        else:
+            workflow = WORKFLOW_LTX
+            workflow_type = "generic_fallback"
+            print("\n=== comfyui-video-bench: LTX-Video (generic fallback) ===")
+
+    print(f"Drives: {drives} | Runs: {args.runs}\n")
 
     for drive in drives:
         print(f"\n--- Drive {drive} ---")
@@ -405,32 +427,28 @@ def main():
 
         # 中央値
         times = sorted([r["total_time_s"] for r in results if r["success"]])
-        if times:
-            mid = len(times) // 2
-            median = (times[mid - 1] + times[mid]) / 2 if len(times) % 2 == 0 else times[mid]
-        else:
-            median = None
+        median_val = calc_median(times) if times else None
 
         summary = {
-            "experiment": "comfyui-ltx-bench",
-            "test": "video_generation",
-            "workflow_type": workflow_type,
+            "experiment": "comfyui-video-bench",
+            "test": workflow_type,
             "drive": drive,
             "runs": args.runs,
-            "median_s": median,
+            "median_s": median_val,
+            "workflow_file": args.workflow,
             "comfyui_info": comfyui_info,
             "results": results,
             "generated": datetime.now().isoformat(),
         }
 
-        out_file = output_dir / f"comfyui_{drive}.json"
+        out_file = output_dir / f"video_{workflow_type}_{drive}.json"
         with open(out_file, "w", encoding="utf-8") as f:
             json.dump(summary, f, indent=2, ensure_ascii=False)
 
-        print(f"Median: {median}s")
+        print(f"Median: {median_val}s")
         print(f"Results saved: {out_file}")
 
-    print("\n=== comfyui-ltx-bench: Complete! ===\n")
+    print(f"\n=== comfyui-video-bench ({workflow_type}): Complete! ===\n")
 
 
 if __name__ == "__main__":
