@@ -1,215 +1,162 @@
 {
-  "sysinfo": {
-    "hostname": "P6-I7G50",
-    "os": {
-      "name": "Microsoft Windows 11 Home Insider Preview",
-      "version": "10.0.26220",
-      "build": "26220",
-      "arch": "64 ビット"
-    },
-    "cpu": {
-      "name": "12th Gen Intel(R) Core(TM) i7-12650H",
-      "cores": 10,
-      "logical_procs": 16,
-      "max_clock_mhz": 2300
-    },
-    "gpu": {
-      "name": "NVIDIA GeForce RTX 4050 Laptop GPU",
-      "driver": "581.80",
-      "vram_total_mb": 6141,
-      "vram_free_mb": 66,
-      "temp_c": 46,
-      "power_draw_w": 1.9,
-      "power_limit_w": null
-    },
-    "memory": {
-      "total_gb": 32,
-      "dimm_count": 2,
-      "dimms": [
-        {
-          "capacity_gb": 16,
-          "speed_mhz": 3200,
-          "type": 26
-        },
-        {
-          "capacity_gb": 16,
-          "speed_mhz": 3200,
-          "type": 26
-        }
-      ]
-    },
-    "storage": [
-      {
-        "model": "NVMe ALEG-850-1TCS",
-        "serial": "0000_0000_0000_0000_707C_1802_2402_157B.",
-        "unique_id": "eui.707C18022402157B",
-        "firmware": "V0922A1",
-        "size_gb": 953.9,
-        "interface": "SCSI",
-        "bus_type": "NVMe",
-        "letters": "D:"
-      },
-      {
-        "model": "NVMe KIOXIA-EXCERIA G2 SSD",
-        "serial": "0000_0000_0000_0000_8CE3_8E03_008B_EA99.",
-        "unique_id": "eui.8CE38E03008BEA99",
-        "firmware": "ECFA17.1",
-        "size_gb": 1863,
-        "interface": "SCSI",
-        "bus_type": "NVMe",
-        "letters": "C:"
-      }
-    ],
-    "collected": "2026-03-10T02:17:26.4549896+09:00"
-  },
+  "sysinfo": null,
   "experiments": {
-    "vibe_local_load": {
+    "vibe_local_load_qwen3_1.7b": {
       "drives": {
-        "C": {
-          "drive": "C",
-          "median_s": 10.745,
+        "D": {
+          "drive": "D",
+          "median_s": 1.476,
           "runs": 3,
-          "generated": "2026-03-10T01:22:13.9142824+09:00",
-          "runner_started_s": 2.77
+          "generated": "2026-03-10T15:16:25.7286292+09:00",
+          "runner_started_s": 4.28
+        },
+        "E": {
+          "drive": "E",
+          "median_s": 3.558,
+          "runs": 3,
+          "generated": "2026-03-10T15:19:33.8547376+09:00",
+          "runner_started_s": 1.28
+        },
+        "F": {
+          "drive": "F",
+          "median_s": 5.5,
+          "runs": 3,
+          "generated": "2026-03-10T15:27:41.5876901+09:00",
+          "runner_started_s": 3.21
+        },
+        "G": {
+          "drive": "G",
+          "median_s": 6.484,
+          "runs": 3,
+          "generated": "2026-03-10T15:36:37.8509882+09:00",
+          "runner_started_s": 3.03
         }
       },
       "drive_order": [
-        "C"
+        "D",
+        "E",
+        "F",
+        "G"
       ],
       "model": "qwen3:1.7b"
     },
-    "vibe_local_codegen": {
+    "vibe_local_load_qwen3_8b": {
       "drives": {
-        "C": {
-          "drive": "C",
-          "median_s": 91.087,
+        "D": {
+          "drive": "D",
+          "median_s": 2.75,
           "runs": 3,
-          "generated": "2026-03-10T01:27:37.2950528+09:00",
-          "avg_tokens_per_sec": 14.03
+          "generated": "2026-03-10T15:15:28.3295089+09:00",
+          "runner_started_s": 1.76
+        },
+        "E": {
+          "drive": "E",
+          "median_s": 2.66,
+          "runs": 3,
+          "generated": "2026-03-10T15:18:40.9842047+09:00",
+          "runner_started_s": 1.6
+        },
+        "F": {
+          "drive": "F",
+          "median_s": 9.909,
+          "runs": 3,
+          "generated": "2026-03-10T15:26:40.7021047+09:00",
+          "runner_started_s": 4.35
+        },
+        "G": {
+          "drive": "G",
+          "median_s": 14.01,
+          "runs": 3,
+          "generated": "2026-03-10T15:35:34.6574044+09:00",
+          "runner_started_s": 8.44
         }
       },
       "drive_order": [
-        "C"
+        "D",
+        "E",
+        "F",
+        "G"
+      ],
+      "model": "qwen3:8b"
+    },
+    "vibe_local_codegen_qwen3_1.7b": {
+      "drives": {
+        "D": {
+          "drive": "D",
+          "median_s": 4.431,
+          "runs": 3,
+          "generated": "2026-03-10T15:17:42.0209923+09:00",
+          "avg_tokens_per_sec": 385.76
+        },
+        "E": {
+          "drive": "E",
+          "median_s": 19.985,
+          "runs": 3,
+          "generated": "2026-03-10T15:25:17.1377265+09:00",
+          "avg_tokens_per_sec": 49.3
+        },
+        "F": {
+          "drive": "F",
+          "median_s": 28.758,
+          "runs": 3,
+          "generated": "2026-03-10T15:34:02.3062840+09:00",
+          "avg_tokens_per_sec": 47.96
+        },
+        "G": {
+          "drive": "G",
+          "median_s": 31.201,
+          "runs": 3,
+          "generated": "2026-03-10T15:45:23.9614097+09:00",
+          "avg_tokens_per_sec": 49.29
+        }
+      },
+      "drive_order": [
+        "D",
+        "E",
+        "F",
+        "G"
       ],
       "model": "qwen3:1.7b"
     },
-    "disk_speed_1024MB": {
+    "vibe_local_codegen_qwen3_8b": {
       "drives": {
-        "C": {
-          "drive": "C",
-          "median_s": 888.4,
-          "runs": 3,
-          "generated": "2026-03-10T02:31:29.2913154+09:00",
-          "write_mbs": 983.1,
-          "read_mbs": 888.4,
-          "disk_info": {
-            "model": "NVMe KIOXIA-EXCERIA G2 SSD",
-            "serial": "0000_0000_0000_0000_8CE3_8E03_008B_EA99.",
-            "unique_id": "eui.8CE38E03008BEA99",
-            "bus_type": "NVMe",
-            "firmware": "ECFA17.1"
-          }
-        },
         "D": {
           "drive": "D",
-          "median_s": 1266,
+          "median_s": 15.03,
           "runs": 3,
-          "generated": "2026-03-10T02:31:38.7311572+09:00",
-          "write_mbs": 881.8,
-          "read_mbs": 1266,
-          "disk_info": {
-            "model": "NVMe ALEG-850-1TCS",
-            "serial": "0000_0000_0000_0000_707C_1802_2402_157B.",
-            "unique_id": "eui.707C18022402157B",
-            "bus_type": "NVMe",
-            "firmware": "V0922A1"
-          }
+          "generated": "2026-03-10T15:17:18.6469849+09:00",
+          "avg_tokens_per_sec": 185.25
+        },
+        "E": {
+          "drive": "E",
+          "median_s": 83.073,
+          "runs": 3,
+          "generated": "2026-03-10T15:23:46.9839103+09:00",
+          "avg_tokens_per_sec": 21.1
+        },
+        "F": {
+          "drive": "F",
+          "median_s": 87.63,
+          "runs": 3,
+          "generated": "2026-03-10T15:32:22.3024243+09:00",
+          "avg_tokens_per_sec": 20.89
+        },
+        "G": {
+          "drive": "G",
+          "median_s": 108.054,
+          "runs": 3,
+          "generated": "2026-03-10T15:43:32.3198114+09:00",
+          "avg_tokens_per_sec": 19.28
         }
       },
       "drive_order": [
-        "C",
-        "D"
+        "D",
+        "E",
+        "F",
+        "G"
       ],
-      "model": "1024MB"
-    },
-    "disk_speed_256MB": {
-      "drives": {
-        "C": {
-          "drive": "C",
-          "median_s": 820.1,
-          "runs": 3,
-          "generated": "2026-03-10T02:31:02.8433165+09:00",
-          "write_mbs": 740.8,
-          "read_mbs": 820.1,
-          "disk_info": {
-            "model": "NVMe KIOXIA-EXCERIA G2 SSD",
-            "serial": "0000_0000_0000_0000_8CE3_8E03_008B_EA99.",
-            "unique_id": "eui.8CE38E03008BEA99",
-            "bus_type": "NVMe",
-            "firmware": "ECFA17.1"
-          }
-        },
-        "D": {
-          "drive": "D",
-          "median_s": 1340.1,
-          "runs": 3,
-          "generated": "2026-03-10T02:31:06.6538988+09:00",
-          "write_mbs": 1297.2,
-          "read_mbs": 1340.1,
-          "disk_info": {
-            "model": "NVMe ALEG-850-1TCS",
-            "serial": "0000_0000_0000_0000_707C_1802_2402_157B.",
-            "unique_id": "eui.707C18022402157B",
-            "bus_type": "NVMe",
-            "firmware": "V0922A1"
-          }
-        }
-      },
-      "drive_order": [
-        "C",
-        "D"
-      ],
-      "model": "256MB"
-    },
-    "disk_speed_512MB": {
-      "drives": {
-        "C": {
-          "drive": "C",
-          "median_s": 1051.7,
-          "runs": 3,
-          "generated": "2026-03-10T02:31:13.1344732+09:00",
-          "write_mbs": 1053.3,
-          "read_mbs": 1051.7,
-          "disk_info": {
-            "model": "NVMe KIOXIA-EXCERIA G2 SSD",
-            "serial": "0000_0000_0000_0000_8CE3_8E03_008B_EA99.",
-            "unique_id": "eui.8CE38E03008BEA99",
-            "bus_type": "NVMe",
-            "firmware": "ECFA17.1"
-          }
-        },
-        "D": {
-          "drive": "D",
-          "median_s": 1049.4,
-          "runs": 3,
-          "generated": "2026-03-10T02:31:19.3170391+09:00",
-          "write_mbs": 1245.7,
-          "read_mbs": 1049.4,
-          "disk_info": {
-            "model": "NVMe ALEG-850-1TCS",
-            "serial": "0000_0000_0000_0000_707C_1802_2402_157B.",
-            "unique_id": "eui.707C18022402157B",
-            "bus_type": "NVMe",
-            "firmware": "V0922A1"
-          }
-        }
-      },
-      "drive_order": [
-        "C",
-        "D"
-      ],
-      "model": "512MB"
+      "model": "qwen3:8b"
     }
   },
-  "updated": "2026-03-10T02:34:15.527789"
+  "updated": "2026-03-10T17:15:56.058171"
 }

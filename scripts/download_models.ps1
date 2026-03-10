@@ -115,11 +115,11 @@ $HF_MODELS = @(
     # RealESRGAN upscaler
     @{
         name     = "RealESRGAN x4plus Anime 6B"
-        repo     = "ai-forever/Real-ESRGAN"
+        repo     = "sberbank-ai/Real-ESRGAN"
         file     = "RealESRGAN_x4plus_anime_6B.pth"
         dest     = "models\upscale_models"
         size_est = "17 MB"
-        url      = "https://huggingface.co/ai-forever/Real-ESRGAN"
+        url      = "https://huggingface.co/sberbank-ai/Real-ESRGAN"
     }
 )
 
@@ -273,8 +273,8 @@ $summary = [ordered]@{
     drive      = $Drive
     comfyui    = $ComfyUIPath
     downloads  = $downloadLog
-    total_s    = [math]::Round(($downloadLog | Where-Object { $_.success } | Measure-Object -Property elapsed_s -Sum).Sum, 2)
-    failed     = ($downloadLog | Where-Object { -not $_.success }).Count
+    total_s    = [math]::Round(($downloadLog | ForEach-Object { [PSCustomObject]$_ } | Where-Object { $_.success } | Measure-Object -Property elapsed_s -Sum).Sum, 2)
+    failed     = ($downloadLog | ForEach-Object { [PSCustomObject]$_ } | Where-Object { -not $_.success }).Count
     generated  = (Get-Date -Format "o")
 }
 $summary | ConvertTo-Json -Depth 5 | Set-Content -Path $outFile -Encoding UTF8

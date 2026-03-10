@@ -197,14 +197,16 @@ def wait_for_completion(prompt_id: str, timeout: int = 300) -> dict:
                 history = json.loads(resp.read().decode())
             if prompt_id in history:
                 entry = history[prompt_id]
-                outputs = entry.get("outputs", {})
-                # 画像出力があれば完了
-                for node_id, node_output in outputs.items():
-                    if "images" in node_output:
-                        return {"success": True, "outputs": outputs}
                 status = entry.get("status", {})
                 if status.get("status_str") == "error":
                     return {"success": False, "error": "ComfyUI execution error"}
+                # completed フラグまたは画像出力で完了判定
+                if status.get("completed", False):
+                    return {"success": True, "outputs": entry.get("outputs", {})}
+                outputs = entry.get("outputs", {})
+                for node_id, node_output in outputs.items():
+                    if "images" in node_output:
+                        return {"success": True, "outputs": outputs}
         except Exception:
             pass
         time.sleep(1)
