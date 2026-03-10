@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(nvidia-smi:*)",
+      "Bash(ollama:*)",
+      "Bash(wmic diskdrive:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(where.exe:*)",
+      "Bash(echo:*)",
+      "Bash(py:*)",
+      "Bash(wmic logicaldisk:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill.exe:*)",
+      "Bash(rm:*)",
+      "Bash(do echo:*)",
+      "Bash(powershell:*)",
+      "Bash(taskkill:*)"
+    ]
+  }
+}
