@@ -495,7 +495,46 @@
         "G"
       ],
       "model": "qwen3:8b"
+    },
+    "comfyui_imggen_r3": {
+      "drives": {
+        "D": {
+          "drive": "D",
+          "median_s": 7.183,
+          "runs": 3,
+          "generated": "2026-03-11T18:57:46.929539",
+          "warm_median_s": 0.042
+        },
+        "E": {
+          "drive": "E",
+          "median_s": 7.176,
+          "runs": 3,
+          "generated": "2026-03-11T18:58:29.892016",
+          "warm_median_s": 0.039
+        },
+        "F": {
+          "drive": "F",
+          "median_s": 7.186,
+          "runs": 3,
+          "generated": "2026-03-11T18:59:12.395943",
+          "warm_median_s": 0.041
+        },
+        "G": {
+          "drive": "G",
+          "median_s": 7.182,
+          "runs": 3,
+          "generated": "2026-03-11T18:59:54.425490",
+          "warm_median_s": 0.04
+        }
+      },
+      "drive_order": [
+        "D",
+        "E",
+        "F",
+        "G"
+      ],
+      "model": "sdxl"
     }
   },
-  "updated": "2026-03-11T18:53:27.917734"
+  "updated": "2026-03-11T18:59:57.551330"
 }
