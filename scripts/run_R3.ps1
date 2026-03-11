@@ -32,6 +32,7 @@ function Push-Results {
     Set-Location $benchDir
     & py scripts/update_site.py
     git add site/data.json Results-P8/ logs/ -f 2>$null
+    git add results/*-R3/ results/summary-R3/ results/parallel-bench-R3/ results/monitor_parallel_*.csv -f 2>$null
     git add scripts/ workflows/ llm-jp-moshi-bench/ qwen3tts-bench/ -f 2>$null
     git commit -m "$Message`n`nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>" 2>$null
     git push 2>$null
@@ -66,10 +67,9 @@ function Stop-ComfyUI {
 # =============================================================================
 if ($StartFrom -le 0) {
     Write-Host "`n=== Ex0: Disk Spec Check ===" -ForegroundColor Yellow
-    # disk-speed-bench が既に存在する場合はそれを使う
     foreach ($drive in $Drives) {
-        & py "$benchDir\disk-speed-bench\bench_diskspeed.py" --drive $drive --runs $Runs `
-            --output-dir "$benchDir\results\disk-speed-bench-R3" 2>$null
+        & powershell -ExecutionPolicy Bypass -File "$benchDir\disk-speed-bench\bench_diskspeed.ps1" `
+            -Drive $drive -Runs $Runs -OutputDir "$benchDir\results\disk-speed-bench-R3"
     }
     Push-Results "Ex0" "R3 Ex0: Disk spec check complete"
 }
@@ -198,7 +198,8 @@ if ($StartFrom -le 7) {
 # =============================================================================
 if ($StartFrom -le 8) {
     Write-Host "`n=== Ex8: Qwen3-TTS Long Text ===" -ForegroundColor Yellow
-    & py "$benchDir\qwen3tts-bench\bench_tts.py" --all-drives --runs $Runs --save-audio
+    & py "$benchDir\qwen3tts-bench\bench_tts.py" --all-drives --runs $Runs --save-audio `
+        --output-dir "$benchDir\results\qwen3tts-bench-R3"
     Push-Results "Ex8" "R3 Ex8: Qwen3-TTS long text TTS complete"
 }
 
@@ -207,7 +208,8 @@ if ($StartFrom -le 8) {
 # =============================================================================
 if ($StartFrom -le 9) {
     Write-Host "`n=== Ex9: llm-jp-moshi Voice Response ===" -ForegroundColor Yellow
-    & py "$benchDir\llm-jp-moshi-bench\bench_moshi.py" --all-drives --runs $Runs
+    & py "$benchDir\llm-jp-moshi-bench\bench_moshi.py" --all-drives --runs $Runs `
+        --output-dir "$benchDir\results\llm-jp-moshi-bench-R3"
     Push-Results "Ex9" "R3 Ex9: llm-jp-moshi voice response complete"
 }
 
