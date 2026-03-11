@@ -1,0 +1,75 @@
+﻿{
+    "experiment":  "summary-R3",
+    "drives":  [
+                   "D",
+                   "E",
+                   "F",
+                   "G"
+               ],
+    "runs":  3,
+    "timestamp":  "2026-03-11T19:29:09.9368090+09:00",
+    "drive_usage":  [
+                        {
+                            "drive":  "D",
+                            "used_gb":  52.3,
+                            "free_gb":  7399.7
+                        },
+                        {
+                            "drive":  "E",
+                            "used_gb":  33.4,
+                            "free_gb":  7418.6
+                        },
+                        {
+                            "drive":  "F",
+                            "used_gb":  33.4,
+                            "free_gb":  7418.5
+                        },
+                        {
+                            "drive":  "G",
+                            "used_gb":  33.4,
+                            "free_gb":  7418.6
+                        }
+                    ],
+    "result_sizes":  [
+                         {
+                             "directory":  "comfyui-aicuty-bench-R3",
+                             "size_mb":  0,
+                             "files":  5
+                         },
+                         {
+                             "directory":  "comfyui-imggen-bench-R3",
+                             "size_mb":  0,
+                             "files":  5
+                         },
+                         {
+                             "directory":  "comfyui-ltx2-bench-R3",
+                             "size_mb":  0,
+                             "files":  5
+                         },
+                         {
+                             "directory":  "comfyui-wan2-bench-R3",
+                             "size_mb":  0,
+                             "files":  5
+                         },
+                         {
+                             "directory":  "disk-speed-bench-R3",
+                             "size_mb":  0,
+                             "files":  4
+                         },
+                         {
+                             "directory":  "llm-jp-moshi-bench-R3",
+                             "size_mb":  0,
+                             "files":  0
+                         },
+                         {
+                             "directory":  "qwen3tts-bench-R3",
+                             "size_mb":  5.4,
+                             "files":  5
+                         },
+                         {
+                             "directory":  "vibe-local-bench-R3",
+                             "size_mb":  0.1,
+                             "files":  28
+                         }
+                     ]
+}
