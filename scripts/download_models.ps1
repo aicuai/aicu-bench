@@ -149,51 +149,51 @@ $HF_MODELS = @(
     # --- Wan 2.2 14B ---
     @{
         name     = "Wan 2.2 T2V High Noise 14B FP8"
-        repo     = "Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        repo     = "Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
         file     = "split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors"
         dest     = "models\diffusion_models"
         size_est = "14 GB"
-        url      = "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        url      = "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
     },
     @{
         name     = "Wan 2.2 T2V Low Noise 14B FP8"
-        repo     = "Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        repo     = "Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
         file     = "split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors"
         dest     = "models\diffusion_models"
         size_est = "14 GB"
-        url      = "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        url      = "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
     },
     @{
         name     = "UMT5-XXL FP8 (Wan 2.2 CLIP)"
-        repo     = "Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        repo     = "Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
         file     = "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors"
         dest     = "models\clip"
         size_est = "4.9 GB"
-        url      = "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        url      = "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
     },
     @{
         name     = "Wan 2.1 VAE"
-        repo     = "Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        repo     = "Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
         file     = "split_files/vae/wan_2.1_vae.safetensors"
         dest     = "models\vae"
         size_est = "200 MB"
-        url      = "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        url      = "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
     },
     @{
         name     = "Wan 2.2 LightX2V LoRA High Noise"
-        repo     = "Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        repo     = "Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
         file     = "split_files/loras/wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors"
         dest     = "models\loras"
         size_est = "1.4 GB"
-        url      = "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        url      = "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
     },
     @{
         name     = "Wan 2.2 LightX2V LoRA Low Noise"
-        repo     = "Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        repo     = "Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
         file     = "split_files/loras/wan2.2_t2v_lightx2v_4steps_lora_v1.1_low_noise.safetensors"
         dest     = "models\loras"
         size_est = "1.4 GB"
-        url      = "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        url      = "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged"
     }
 )
 
@@ -290,7 +290,9 @@ if (-not $SkipComfyUI) {
 
     foreach ($m in $HF_MODELS) {
         $destDir = Join-Path $ComfyUIPath $m.dest
-        $destFile = Join-Path $destDir $m.file
+        # file にサブディレクトリが含まれる場合（split_files/...）はファイル名だけを使う
+        $localFileName = Split-Path $m.file -Leaf
+        $destFile = Join-Path $destDir $localFileName
 
         if (Test-Path $destFile) {
             $size = [math]::Round((Get-Item $destFile).Length / 1GB, 2)
@@ -305,14 +307,19 @@ if (-not $SkipComfyUI) {
         Measure-Download -Name "HF: $($m.name)" -Category "huggingface" -Action {
             py -c @"
 from huggingface_hub import hf_hub_download
-import os
+import os, shutil
 path = hf_hub_download(
     repo_id='$($m.repo)',
     filename='$($m.file)',
     local_dir=r'$destDir'
 )
+# サブディレクトリにDLされた場合、destDir直下に移動
+dest_final = os.path.join(r'$destDir', os.path.basename(path))
+if os.path.abspath(path) != os.path.abspath(dest_final):
+    shutil.move(path, dest_final)
+    path = dest_final
 size_gb = os.path.getsize(path) / (1024**3)
-print(f'  Downloaded: {size_gb:.2f} GB')
+print(f'  Downloaded: {size_gb:.2f} GB -> {path}')
 "@
         }
     }
