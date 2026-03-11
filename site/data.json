@@ -283,11 +283,25 @@
           "median_s": 8.64,
           "runs": 3,
           "generated": "2026-03-11T15:06:21.510441"
+        },
+        "F": {
+          "drive": "F",
+          "median_s": 10.089,
+          "runs": 3,
+          "generated": "2026-03-11T15:22:16.857345"
+        },
+        "G": {
+          "drive": "G",
+          "median_s": 7.514,
+          "runs": 3,
+          "generated": "2026-03-11T15:46:55.657439"
         }
       },
       "drive_order": [
         "D",
-        "E"
+        "E",
+        "F",
+        "G"
       ],
       "model": "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"
     },
@@ -327,5 +341,5 @@
       "model": "llm-jp/llm-jp-moshi-v1"
     }
   },
-  "updated": "2026-03-11T15:10:29.063166"
+  "updated": "2026-03-11T15:50:20.994152"
 }

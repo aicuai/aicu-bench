@@ -1,0 +1,257 @@
+{
+  "experiment": "qwen3tts-bench",
+  "drive": "G",
+  "model": "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+  "speaker": "ono_anna",
+  "runs": 3,
+  "model_load_s": 6.552,
+  "ttfa_median_s": 7.514,
+  "total_median_s": 225.393,
+  "text_medians": {
+    "S1": 7.514,
+    "M1": 27.619,
+    "M2": 21.226,
+    "L1": 84.699,
+    "L2": 77.315
+  },
+  "test_texts": [
+    {
+      "id": "S1",
+      "label": "短文・挨拶",
+      "char_count": 17
+    },
+    {
+      "id": "M1",
+      "label": "中文・青空文庫（夏目漱石『吾輩は猫である』）",
+      "char_count": 69
+    },
+    {
+      "id": "M2",
+      "label": "中文・青空文庫（宮沢賢治『銀河鉄道の夜』）",
+      "char_count": 60
+    },
+    {
+      "id": "L1",
+      "label": "長文・青空文庫（太宰治『走れメロス』）",
+      "char_count": 145
+    },
+    {
+      "id": "L2",
+      "label": "長文・AI解説",
+      "char_count": 221
+    }
+  ],
+  "results": [
+    {
+      "run": 1,
+      "text_results": [
+        {
+          "elapsed_s": 5.463,
+          "duration_sec": 2.8,
+          "sample_rate": 24000,
+          "samples": 67200,
+          "success": true,
+          "text_id": "S1",
+          "label": "短文・挨拶",
+          "char_count": 17
+        },
+        {
+          "elapsed_s": 24.482,
+          "duration_sec": 12.4,
+          "sample_rate": 24000,
+          "samples": 297600,
+          "success": true,
+          "text_id": "M1",
+          "label": "中文・青空文庫（夏目漱石『吾輩は猫である』）",
+          "char_count": 69
+        },
+        {
+          "elapsed_s": 19.997,
+          "duration_sec": 9.44,
+          "sample_rate": 24000,
+          "samples": 226560,
+          "success": true,
+          "text_id": "M2",
+          "label": "中文・青空文庫（宮沢賢治『銀河鉄道の夜』）",
+          "char_count": 60
+        },
+        {
+          "elapsed_s": 84.627,
+          "duration_sec": 33.92,
+          "sample_rate": 24000,
+          "samples": 814080,
+          "success": true,
+          "text_id": "L1",
+          "label": "長文・青空文庫（太宰治『走れメロス』）",
+          "char_count": 145
+        },
+        {
+          "elapsed_s": 77.315,
+          "duration_sec": 31.68,
+          "sample_rate": 24000,
+          "samples": 760320,
+          "success": true,
+          "text_id": "L2",
+          "label": "長文・AI解説",
+          "char_count": 221
+        }
+      ],
+      "gpu_before": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 7179,
+        "vram_total_mb": 97887,
+        "temp_c": 66,
+        "power_w": 117.79
+      },
+      "gpu_after": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 7224,
+        "vram_total_mb": 97887,
+        "temp_c": 67,
+        "power_w": 113.88
+      },
+      "timestamp": "2026-03-11T15:39:08.541446"
+    },
+    {
+      "run": 2,
+      "text_results": [
+        {
+          "elapsed_s": 9.754,
+          "duration_sec": 3.52,
+          "sample_rate": 24000,
+          "samples": 84480,
+          "success": true,
+          "text_id": "S1",
+          "label": "短文・挨拶",
+          "char_count": 17
+        },
+        {
+          "elapsed_s": 35.612,
+          "duration_sec": 14.96,
+          "sample_rate": 24000,
+          "samples": 359040,
+          "success": true,
+          "text_id": "M1",
+          "label": "中文・青空文庫（夏目漱石『吾輩は猫である』）",
+          "char_count": 69
+        },
+        {
+          "elapsed_s": 21.226,
+          "duration_sec": 9.28,
+          "sample_rate": 24000,
+          "samples": 222720,
+          "success": true,
+          "text_id": "M2",
+          "label": "中文・青空文庫（宮沢賢治『銀河鉄道の夜』）",
+          "char_count": 60
+        },
+        {
+          "elapsed_s": 84.699,
+          "duration_sec": 36.0,
+          "sample_rate": 24000,
+          "samples": 864000,
+          "success": true,
+          "text_id": "L1",
+          "label": "長文・青空文庫（太宰治『走れメロス』）",
+          "char_count": 145
+        },
+        {
+          "elapsed_s": 74.102,
+          "duration_sec": 29.92,
+          "sample_rate": 24000,
+          "samples": 718080,
+          "success": true,
+          "text_id": "L2",
+          "label": "長文・AI解説",
+          "char_count": 221
+        }
+      ],
+      "gpu_before": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 7224,
+        "vram_total_mb": 97887,
+        "temp_c": 67,
+        "power_w": 113.88
+      },
+      "gpu_after": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 7224,
+        "vram_total_mb": 97887,
+        "temp_c": 66,
+        "power_w": 113.22
+      },
+      "timestamp": "2026-03-11T15:42:54.007212"
+    },
+    {
+      "run": 3,
+      "text_results": [
+        {
+          "elapsed_s": 7.514,
+          "duration_sec": 2.8,
+          "sample_rate": 24000,
+          "samples": 67200,
+          "success": true,
+          "text_id": "S1",
+          "label": "短文・挨拶",
+          "char_count": 17
+        },
+        {
+          "elapsed_s": 27.619,
+          "duration_sec": 11.44,
+          "sample_rate": 24000,
+          "samples": 274560,
+          "success": true,
+          "text_id": "M1",
+          "label": "中文・青空文庫（夏目漱石『吾輩は猫である』）",
+          "char_count": 69
+        },
+        {
+          "elapsed_s": 29.568,
+          "duration_sec": 12.16,
+          "sample_rate": 24000,
+          "samples": 291840,
+          "success": true,
+          "text_id": "M2",
+          "label": "中文・青空文庫（宮沢賢治『銀河鉄道の夜』）",
+          "char_count": 60
+        },
+        {
+          "elapsed_s": 95.211,
+          "duration_sec": 38.32,
+          "sample_rate": 24000,
+          "samples": 919680,
+          "success": true,
+          "text_id": "L1",
+          "label": "長文・青空文庫（太宰治『走れメロス』）",
+          "char_count": 145
+        },
+        {
+          "elapsed_s": 81.661,
+          "duration_sec": 33.04,
+          "sample_rate": 24000,
+          "samples": 792960,
+          "success": true,
+          "text_id": "L2",
+          "label": "長文・AI解説",
+          "char_count": 221
+        }
+      ],
+      "gpu_before": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 7224,
+        "vram_total_mb": 97887,
+        "temp_c": 66,
+        "power_w": 113.22
+      },
+      "gpu_after": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 7224,
+        "vram_total_mb": 97887,
+        "temp_c": 66,
+        "power_w": 110.92
+      },
+      "timestamp": "2026-03-11T15:46:55.657405"
+    }
+  ],
+  "generated": "2026-03-11T15:46:55.657439"
+}
