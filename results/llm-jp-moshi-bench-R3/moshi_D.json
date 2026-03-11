@@ -1,0 +1,160 @@
+{
+  "experiment": "llm-jp-moshi-bench",
+  "test": "moshi_v1",
+  "drive": "D",
+  "model": "llm-jp/llm-jp-moshi-v1",
+  "model_size_gb": 15.6,
+  "runs": 3,
+  "median_s": 7.495,
+  "lm_load_median_s": 7.135,
+  "results": [
+    {
+      "run": 1,
+      "mimi_load_s": 0.36,
+      "mimi_size_mb": 366.8,
+      "lm_load_s": 7.135,
+      "lm_size_mb": 14663.2,
+      "total_load_s": 7.495,
+      "total_size_mb": 15030.0,
+      "codec": {
+        "input_duration_sec": 3.0,
+        "encode_time_s": 0.2969,
+        "decode_time_s": 0.0278,
+        "codes_shape": [
+          1,
+          8,
+          38
+        ],
+        "output_samples": 72960
+      },
+      "lm_gen": {
+        "steps": 25,
+        "elapsed_s": 0.0,
+        "steps_per_sec": 25000.0,
+        "realtime_factor": 2000.0
+      },
+      "gpu_before": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 1787,
+        "vram_total_mb": 97887,
+        "temp_c": 61,
+        "power_w": 33.03
+      },
+      "gpu_after_load": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 17114,
+        "vram_total_mb": 97887,
+        "temp_c": 61,
+        "power_w": 53.2
+      },
+      "gpu_after": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 17264,
+        "vram_total_mb": 97887,
+        "temp_c": 61,
+        "power_w": 50.41
+      },
+      "success": true,
+      "timestamp": "2026-03-11T19:29:23.213682"
+    },
+    {
+      "run": 2,
+      "mimi_load_s": 0.381,
+      "mimi_size_mb": 366.8,
+      "lm_load_s": 7.317,
+      "lm_size_mb": 14663.2,
+      "total_load_s": 7.698,
+      "total_size_mb": 15030.0,
+      "codec": {
+        "input_duration_sec": 3.0,
+        "encode_time_s": 0.0206,
+        "decode_time_s": 0.0095,
+        "codes_shape": [
+          1,
+          8,
+          38
+        ],
+        "output_samples": 72960
+      },
+      "lm_gen": {
+        "steps": 25,
+        "elapsed_s": 0.0,
+        "steps_per_sec": 25000.0,
+        "realtime_factor": 2000.0
+      },
+      "gpu_before": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 1894,
+        "vram_total_mb": 97887,
+        "temp_c": 61,
+        "power_w": 50.41
+      },
+      "gpu_after_load": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 17156,
+        "vram_total_mb": 97887,
+        "temp_c": 60,
+        "power_w": 56.71
+      },
+      "gpu_after": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 17274,
+        "vram_total_mb": 97887,
+        "temp_c": 60,
+        "power_w": 56.71
+      },
+      "success": true,
+      "timestamp": "2026-03-11T19:29:31.528216"
+    },
+    {
+      "run": 3,
+      "mimi_load_s": 0.374,
+      "mimi_size_mb": 366.8,
+      "lm_load_s": 6.96,
+      "lm_size_mb": 14663.2,
+      "total_load_s": 7.334,
+      "total_size_mb": 15030.0,
+      "codec": {
+        "input_duration_sec": 3.0,
+        "encode_time_s": 0.0187,
+        "decode_time_s": 0.0125,
+        "codes_shape": [
+          1,
+          8,
+          38
+        ],
+        "output_samples": 72960
+      },
+      "lm_gen": {
+        "steps": 25,
+        "elapsed_s": 0.0,
+        "steps_per_sec": 25000.0,
+        "realtime_factor": 2000.0
+      },
+      "gpu_before": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 1900,
+        "vram_total_mb": 97887,
+        "temp_c": 60,
+        "power_w": 56.71
+      },
+      "gpu_after_load": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 17150,
+        "vram_total_mb": 97887,
+        "temp_c": 59,
+        "power_w": 31.01
+      },
+      "gpu_after": {
+        "gpu_name": "NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition",
+        "vram_used_mb": 17268,
+        "vram_total_mb": 97887,
+        "temp_c": 59,
+        "power_w": 31.01
+      },
+      "success": true,
+      "timestamp": "2026-03-11T19:29:39.445501"
+    }
+  ],
+  "generated": "2026-03-11T19:29:39.445531"
+}

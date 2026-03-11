@@ -573,7 +573,42 @@
         "G"
       ],
       "model": "aicuty_sdxl"
+    },
+    "llm_jp_moshi_r3": {
+      "drives": {
+        "D": {
+          "drive": "D",
+          "median_s": 7.495,
+          "runs": 3,
+          "generated": "2026-03-11T19:29:39.445531"
+        },
+        "E": {
+          "drive": "E",
+          "median_s": 7.39,
+          "runs": 3,
+          "generated": "2026-03-11T19:30:03.795524"
+        },
+        "F": {
+          "drive": "F",
+          "median_s": 7.557,
+          "runs": 3,
+          "generated": "2026-03-11T19:30:28.602752"
+        },
+        "G": {
+          "drive": "G",
+          "median_s": 7.712,
+          "runs": 3,
+          "generated": "2026-03-11T19:30:54.055786"
+        }
+      },
+      "drive_order": [
+        "D",
+        "E",
+        "F",
+        "G"
+      ],
+      "model": "llm-jp/llm-jp-moshi-v1"
     }
   },
-  "updated": "2026-03-11T19:29:10.090666"
+  "updated": "2026-03-11T19:30:54.763261"
 }
