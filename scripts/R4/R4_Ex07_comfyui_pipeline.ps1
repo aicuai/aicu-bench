@@ -2,9 +2,11 @@
 .SYNOPSIS
   Ex7: ComfyUI LTX 2.3 ia2v パイプライン (AiCuty画像 + TTS音声 → 動画)
 #>
-param([int]$Runs = 3, [string[]]$Drives = @("D","E","F","G"), [int]$Port = 8188)
+param([int]$Runs = 1, [string[]]$Drives = @("D","E","F","G"), [int]$Port = 8188)
 . "$PSScriptRoot\_common.ps1"
 
+# 推論中はディスクアクセスがほぼないため、各ドライブ1回のみ
+$Runs = 1
 Write-Host "`n=== Ex7: ComfyUI LTX 2.3 ia2v Pipeline ===" -ForegroundColor Yellow
 Write-Host "  AiCuty image + TTS audio -> LTX 2.3 video" -ForegroundColor Cyan
 Ensure-Clean
