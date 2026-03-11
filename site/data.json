@@ -534,7 +534,46 @@
         "G"
       ],
       "model": "sdxl"
+    },
+    "comfyui_aicuty_r3": {
+      "drives": {
+        "D": {
+          "drive": "D",
+          "median_s": 13.463,
+          "runs": 3,
+          "generated": "2026-03-11T19:01:49.648668",
+          "warm_median_s": 0.041
+        },
+        "E": {
+          "drive": "E",
+          "median_s": 13.379,
+          "runs": 3,
+          "generated": "2026-03-11T19:02:51.668859",
+          "warm_median_s": 0.041
+        },
+        "F": {
+          "drive": "F",
+          "median_s": 14.272,
+          "runs": 3,
+          "generated": "2026-03-11T19:03:53.610104",
+          "warm_median_s": 0.037
+        },
+        "G": {
+          "drive": "G",
+          "median_s": 14.284,
+          "runs": 3,
+          "generated": "2026-03-11T19:04:56.567443",
+          "warm_median_s": 0.041
+        }
+      },
+      "drive_order": [
+        "D",
+        "E",
+        "F",
+        "G"
+      ],
+      "model": "aicuty_sdxl"
     }
   },
-  "updated": "2026-03-11T18:59:57.551330"
+  "updated": "2026-03-11T19:04:59.704254"
 }
