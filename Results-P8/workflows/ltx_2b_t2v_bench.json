@@ -1,0 +1,114 @@
+{
+  "1": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "ltx-video-2b-v0.9.5.safetensors"
+    },
+    "_meta": { "title": "Load LTX-Video 2B (model+vae)" }
+  },
+  "12": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "t5xxl_fp16.safetensors",
+      "type": "ltxv"
+    },
+    "_meta": { "title": "Load T5-XXL for LTXV" }
+  },
+  "2": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "A cat walking gracefully through a sunlit garden, cinematic quality, smooth motion, 24fps",
+      "clip": ["12", 0]
+    },
+    "_meta": { "title": "Positive Prompt" }
+  },
+  "3": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "blurry, low quality, distorted, watermark",
+      "clip": ["12", 0]
+    },
+    "_meta": { "title": "Negative Prompt" }
+  },
+  "4": {
+    "class_type": "EmptyLTXVLatentVideo",
+    "inputs": {
+      "width": 512,
+      "height": 320,
+      "length": 25,
+      "batch_size": 1
+    },
+    "_meta": { "title": "Empty LTX Latent (25 frames)" }
+  },
+  "5": {
+    "class_type": "LTXVConditioning",
+    "inputs": {
+      "positive": ["2", 0],
+      "negative": ["3", 0],
+      "frame_rate": 24
+    },
+    "_meta": { "title": "LTXVConditioning" }
+  },
+  "11": {
+    "class_type": "ModelSamplingLTXV",
+    "inputs": {
+      "model": ["1", 0],
+      "max_shift": 2.05,
+      "base_shift": 0.95
+    },
+    "_meta": { "title": "ModelSamplingLTXV" }
+  },
+  "6": {
+    "class_type": "LTXVScheduler",
+    "inputs": {
+      "steps": 20,
+      "max_shift": 2.05,
+      "base_shift": 0.95,
+      "stretch": true,
+      "terminal": 0.1
+    },
+    "_meta": { "title": "LTXVScheduler" }
+  },
+  "7": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "_meta": { "title": "Sampler Select" }
+  },
+  "8": {
+    "class_type": "SamplerCustom",
+    "inputs": {
+      "model": ["11", 0],
+      "positive": ["5", 0],
+      "negative": ["5", 1],
+      "latent_image": ["4", 0],
+      "noise_seed": 42,
+      "cfg": 1.0,
+      "sampler": ["7", 0],
+      "sigmas": ["6", 0],
+      "add_noise": true
+    },
+    "_meta": { "title": "SamplerCustom" }
+  },
+  "9": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["8", 0],
+      "vae": ["1", 2]
+    },
+    "_meta": { "title": "VAE Decode" }
+  },
+  "10": {
+    "class_type": "SaveAnimatedWEBP",
+    "inputs": {
+      "images": ["9", 0],
+      "filename_prefix": "bench_ltx_video",
+      "fps": 24,
+      "lossless": false,
+      "quality": 85,
+      "method": "default"
+    },
+    "_meta": { "title": "Save Video WEBP" }
+  }
+}

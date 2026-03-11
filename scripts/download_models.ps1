@@ -115,31 +115,33 @@ $HF_MODELS = @(
     # RealESRGAN upscaler
     @{
         name     = "RealESRGAN x4plus Anime 6B"
-        repo     = "sberbank-ai/Real-ESRGAN"
+        repo     = "nateraw/real-esrgan"
         file     = "RealESRGAN_x4plus_anime_6B.pth"
         dest     = "models\upscale_models"
         size_est = "17 MB"
-        url      = "https://huggingface.co/sberbank-ai/Real-ESRGAN"
+        url      = "https://huggingface.co/nateraw/real-esrgan"
     }
 )
 
 # CivitAI models (要 CIVITAI_API_KEY)
 $CIVITAI_MODELS = @(
     @{
-        name     = "Niji Anime Illustrious LoRA"
-        file     = "Niji_anime_illustrious.safetensors"
-        dest     = "models\loras"
-        size_est = "180 MB"
-        url      = "https://civitai.com/models/1089922"
-        note     = "CivitAI login required"
+        name       = "Niji Anime Illustrious LoRA"
+        file       = "Niji_anime_illustrious.safetensors"
+        dest       = "models\loras"
+        size_est   = "435 MB"
+        url        = "https://civitai.com/models/1261988"
+        version_id = 1939768
+        note       = "CivitAI login required"
     },
     @{
-        name     = "Enchanting Eyes Illustrious LoRA"
-        file     = "eyecolle_xl_code191.safetensors"
-        dest     = "models\loras"
-        size_est = "36 MB"
-        url      = "https://civitai.com/models/1045810"
-        note     = "CivitAI login required"
+        name       = "Enchanting Eyes Illustrious LoRA"
+        file       = "eyecolle_xl_code191.safetensors"
+        dest       = "models\loras"
+        size_est   = "52 MB"
+        url        = "https://civitai.com/models/974076"
+        version_id = 1463317
+        note       = "CivitAI login required"
     }
 )
 

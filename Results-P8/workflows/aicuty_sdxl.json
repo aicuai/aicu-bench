@@ -1,0 +1,184 @@
+{
+  "4": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "animagine-xl-4.0-opt.safetensors"
+    },
+    "_meta": {
+      "title": "Load Checkpoint (Animagine XL 4.0)"
+    }
+  },
+  "21": {
+    "class_type": "CLIPSetLastLayer",
+    "inputs": {
+      "stop_at_clip_layer": -2,
+      "clip": [
+        "4",
+        1
+      ]
+    },
+    "_meta": {
+      "title": "CLIP Skip -2"
+    }
+  },
+  "17": {
+    "class_type": "LoraLoader",
+    "inputs": {
+      "lora_name": "Niji_anime_illustrious.safetensors",
+      "strength_model": 1.0,
+      "strength_clip": 1.0,
+      "model": [
+        "4",
+        0
+      ],
+      "clip": [
+        "21",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "LoRA: Niji Anime Illustrious"
+    }
+  },
+  "19": {
+    "class_type": "LoraLoader",
+    "inputs": {
+      "lora_name": "eyecolle_xl_code191.safetensors",
+      "strength_model": 0.8,
+      "strength_clip": 1.0,
+      "model": [
+        "17",
+        0
+      ],
+      "clip": [
+        "17",
+        1
+      ]
+    },
+    "_meta": {
+      "title": "LoRA: Enchanting Eyes"
+    }
+  },
+  "6": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "# 構図と品質\nmasterpiece, best quality, solo, full body, sweet and gentle anime idol girl in center position, from front,\nsoft and affectionate personality, slightly shy warm smile,\n\n# 髪型・装飾\nfluffy twin tails tied high with big pastel pink ribbons and rose flower hair clips,\nsoft curled ends with subtle rose pink gradient,\nchoppy bangs, loose side bangs softly framing forehead,\n\n# 顔立ち・表情（目を強化）\nsilky rose-pink hair,\nbig bright sparkling pink eyes, highly detailed eyes, glossy eyes, sharp pupils, symmetrical eyes, clear highlights,\nlarge expressive eyes, looking directly at camera, tidy silhouette,\n\n# 衣装（ゴージャスで神聖なアイドルステージ衣装）\nwearing a goddess-inspired idol stage outfit mainly in pastel pink and white with fine gold accents and subtle black trims:\noff-shoulder flowing mini dress made of lightweight futuristic tech-fabric with soft iridescent glow and subtle sheer overlays along skirt edges,\nlayered skirt with outer bright pink tech-fabric and inner layer of airy semi-transparent white chiffon,\nslim gold belt with tiny pink gemstone and subtle black edge lines,\ncropped white bolero jacket with semi-sheer mesh sleeves and hem with faint see-through effect and pink piping,\nsubtle glowing circuit pattern on cuffs outlined with fine black piping,\nfingerless lace gloves with tiny pink bows,\nwhite ankle boots with subtle gold trims and small black edging at soles with small pink ribbon flares at back,\n\n# ポーズ\nstanding in a cute idol pose with both hands forming a heart near chest,\nlooking directly at camera,\n\n# 背景\nwhite background, simple background, clean studio light,\n\n# ライティング（統一指示）\nsoft directional white light from upper left, consistent shadowing across all elements\n",
+      "clip": [
+        "19",
+        1
+      ]
+    },
+    "_meta": {
+      "title": "Positive Prompt (AiCuty Elena Bloom)"
+    }
+  },
+  "7": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "low quality, worst quality, bad anatomy, poorly drawn face,\ndeformed eyes, asymmetrical eyes, dull eyes, bad eyes, multiple pupils, creepy eyes,\nextra limbs, cropped, blurry, out of frame,\nwatermark, text, nsfw, loli, mature woman, heavy makeup,\ninconsistent outfit, duplicate costume\n",
+      "clip": [
+        "4",
+        1
+      ]
+    },
+    "_meta": {
+      "title": "Negative Prompt"
+    }
+  },
+  "5": {
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": 736,
+      "height": 1128,
+      "batch_size": 1
+    },
+    "_meta": {
+      "title": "Empty Latent (736x1128)"
+    }
+  },
+  "3": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 23255246635367,
+      "control_after_generate": "increment",
+      "steps": 28,
+      "cfg": 5.0,
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "karras",
+      "denoise": 1.0,
+      "model": [
+        "19",
+        0
+      ],
+      "positive": [
+        "6",
+        0
+      ],
+      "negative": [
+        "7",
+        0
+      ],
+      "latent_image": [
+        "5",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "KSampler (DPM++ 2M SDE Karras, 28 steps)"
+    }
+  },
+  "8": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "3",
+        0
+      ],
+      "vae": [
+        "4",
+        2
+      ]
+    },
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "13": {
+    "class_type": "UpscaleModelLoader",
+    "inputs": {
+      "model_name": "RealESRGAN_x4plus_anime_6B.pth"
+    },
+    "_meta": {
+      "title": "Load Upscale Model"
+    }
+  },
+  "14": {
+    "class_type": "ImageUpscaleWithModel",
+    "inputs": {
+      "upscale_model": [
+        "13",
+        0
+      ],
+      "image": [
+        "8",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "Upscale 4x"
+    }
+  },
+  "9": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "aicuty_bench",
+      "images": [
+        "14",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "Save Image"
+    }
+  }
+}

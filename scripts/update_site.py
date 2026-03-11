@@ -43,6 +43,7 @@ def load_results(results_dir: Path) -> dict:
         ("disk-speed-bench", "diskspeed_*.json", "disk_speed"),
         ("comfyui-imggen-bench", "imggen_*.json", "comfyui_imggen"),
         ("comfyui-ltx-bench", "comfyui_*.json", "comfyui_ltx"),
+        ("comfyui-video-bench", "video_*.json", "comfyui_video"),
         ("qwen3tts-bench", "tts_*.json", "qwen3tts"),
     ]
 
@@ -64,7 +65,7 @@ def load_results(results_dir: Path) -> dict:
                 model = f"{size_mb}MB"
                 model_tag = f"{size_mb}MB"
             else:
-                model = result.get("model", "unknown")
+                model = result.get("model") or result.get("test") or "unknown"
                 model_tag = model.replace(":", "_")
 
             # 成功した結果がなければスキップ
@@ -72,7 +73,16 @@ def load_results(results_dir: Path) -> dict:
             # disk-speed-bench は success ではなく read_ok/write_ok を使う
             if not successful:
                 successful = [r for r in result.get("results", []) if r.get("read_ok") or r.get("write_ok")]
-            if not successful and result.get("median_s") is None and result.get("read_median_mbs") is None:
+            # comfyui-imggen-bench は cold_start_s を持つが success フィールドがない
+            if not successful:
+                successful = [r for r in result.get("results", []) if r.get("cold_start_s") is not None]
+            has_metric = (
+                result.get("median_s") is not None
+                or result.get("cold_start_median_s") is not None
+                or result.get("ttfa_median_s") is not None
+                or result.get("read_median_mbs") is not None
+            )
+            if not successful and not has_metric:
                 continue
 
             if model_tag not in model_groups:
@@ -98,6 +108,8 @@ def load_results(results_dir: Path) -> dict:
             # 実験固有メトリクス
             if "warm_batch_median_s" in result:
                 entry["warm_median_s"] = result["warm_batch_median_s"]
+            if "warm_start_median_s" in result:
+                entry["warm_median_s"] = result["warm_start_median_s"]
             if "tokens_per_sec" in str(result):
                 tps_list = [
                     r.get("tokens_per_sec", 0)

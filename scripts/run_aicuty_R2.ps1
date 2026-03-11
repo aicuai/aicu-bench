@@ -1,0 +1,36 @@
+<#
+.SYNOPSIS
+  ComfyUI AiCuty SDXL ベンチマーク (Checkpoint + 2 LoRA + Upscaler)
+#>
+param([int]$Runs = 3, [int]$Port = 8188)
+$ErrorActionPreference = "Stop"
+$drives = @("D", "E", "F", "G")
+$benchDir = Split-Path $PSScriptRoot -Parent
+$outDir = Join-Path $benchDir "results\comfyui-imggen-bench-R2"
+
+foreach ($drive in $drives) {
+    Write-Host "`n=== Drive $drive ===" -ForegroundColor Yellow
+    $comfyPath = "${drive}:\ComfyUI"
+
+    Get-Process python -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 3
+
+    Write-Host "Starting ComfyUI from $comfyPath..." -ForegroundColor Cyan
+    $comfyProc = Start-Process -FilePath "py" -ArgumentList "main.py --listen 0.0.0.0 --port $Port" `
+        -WorkingDirectory $comfyPath -WindowStyle Hidden -PassThru
+
+    $ready = $false
+    for ($w = 0; $w -lt 30; $w++) {
+        try { Invoke-RestMethod -Uri "http://127.0.0.1:${Port}/system_stats" -TimeoutSec 3 | Out-Null; $ready = $true; break } catch { Start-Sleep -Seconds 2 }
+    }
+    if (-not $ready) { Write-Host "ERROR: ComfyUI failed" -ForegroundColor Red; continue }
+    Write-Host "ComfyUI ready" -ForegroundColor Green
+
+    # AiCuty SDXL ベンチ (Checkpoint + 2 LoRA + Upscaler)
+    & py "$benchDir\comfyui-imggen-bench\bench_imggen.py" --workflow "$benchDir\workflows\aicuty_sdxl.json" --drive $drive --runs $Runs --host "http://127.0.0.1:${Port}" --output-dir $outDir
+
+    Stop-Process -Id $comfyProc.Id -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 3
+    Write-Host "Drive $drive done" -ForegroundColor Green
+}
+Write-Host "`n=== ALL DRIVES COMPLETE ===" -ForegroundColor Green

@@ -395,72 +395,151 @@
 <!-- 生成物サンプル -->
 <section>
   <div class="container">
-    <h2 class="section-title">生成物サンプル</h2>
+    <h2 class="section-title">生成物サンプル (実データ: R2)</h2>
     <p style="margin-bottom:20px; color: var(--text-secondary);">
-      各ベンチマークが実際に生成するコンテンツの例。ストレージ速度の差が「モデルロード＆生成開始までの時間」に影響します。
+      RTX PRO 6000 Blackwell (98GB VRAM) で実際に生成されたコンテンツ。
+      <strong>同一シード・同一設定</strong>のためドライブ間で出力は同一。差が出るのは「生成開始までの時間」です。
     </p>
-    <div class="exp-grid">
-      <div class="exp-card">
-        <div class="exp-icon">&#128444;</div>
-        <h3>画像生成 (<a href="https://github.com/aicuai/AiCuty" target="_blank" rel="noopener">AiCuty</a> SDXL)</h3>
-        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:8px;">
-          <a href="https://github.com/aicuai/AiCuty" target="_blank" rel="noopener">AiCuty</a> プロジェクトの
-          ComfyUI ワークフローを使用。Animagine XL 4.0 + LoRA 2 種 + RealESRGAN 4x アップスケール。
-        </p>
-        <div style="background:#f6f8fa; border:1px solid var(--border); border-radius:8px; padding:40px; text-align:center; color:var(--text-secondary); font-size:0.85rem;">
-          736 &times; 1128px / Animagine XL 4.0 (28 steps, DPM++ 2M SDE Karras, CFG 5)<br>
-          + Niji Anime Illustrious LoRA + Enchanting Eyes LoRA<br>
-          + RealESRGAN 4x Upscale &rarr; 2944 &times; 4512px 最終出力<br>
-          <span style="font-size:0.8rem;">&#x1F4CB; 本実験実行後に AiCuty キャラクター画像を掲載予定</span>
+
+    <!-- Size classification info -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-bottom:24px;">
+      <div class="exp-card" style="border-left: 4px solid #0969da; padding:16px;">
+        <div class="exp-icon" style="font-size:1.2rem;">S</div>
+        <h3>Small Models (~7GB)</h3>
+        <p style="font-size:0.85rem; color:var(--text-secondary);">SDXL Checkpoint 単体。98GB VRAM に余裕で収まり、ストレージ差はほぼ出ない。</p>
+        <p style="font-size:0.85rem; margin-top:4px;"><strong>Cold start: 6-7s</strong> (差: ~1s)</p>
+      </div>
+      <div class="exp-card" style="border-left: 4px solid #bf5700; padding:16px;">
+        <div class="exp-icon" style="font-size:1.2rem;">M</div>
+        <h3>Medium Models (~15GB)</h3>
+        <p style="font-size:0.85rem; color:var(--text-secondary);">LTX-Video 2B + T5-XXL。コールドスタートでストレージ速度差が顕在化。</p>
+        <p style="font-size:0.85rem; margin-top:4px;"><strong>Cold start: 8s vs 61s</strong> (差: 7.5x)</p>
+      </div>
+      <div class="exp-card" style="border-left: 4px solid #cf222e; padding:16px;">
+        <div class="exp-icon" style="font-size:1.2rem;">L</div>
+        <h3>Large Models (~30GB+)</h3>
+        <p style="font-size:0.85rem; color:var(--text-secondary);">Wan 2.2 / LTX 2.3。R3 以降で計測予定。最もストレージ速度が効くサイズ帯。</p>
+        <p style="font-size:0.85rem; margin-top:4px;"><strong>Coming soon (R3/R4)</strong></p>
+      </div>
+    </div>
+
+    <!-- AiCuty SDXL Gallery -->
+    <div class="exp-card" style="margin-bottom:20px;">
+      <h3>&#128444; AiCuty SDXL — Small Models (~7GB) Checkpoint + 2 LoRA + Upscaler</h3>
+      <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:12px;">
+        <a href="https://github.com/aicuai/AiCuty" target="_blank" rel="noopener">AiCuty</a> ワークフロー:
+        Animagine XL 4.0 + Niji Anime LoRA + Enchanting Eyes LoRA + RealESRGAN 4x Upscale<br>
+        736&times;1128 / 28 steps / DPM++ 2M SDE Karras / CFG 5 &rarr; <strong>2944&times;4512px 最終出力</strong><br>
+        ComfyUI: <code>python main.py --listen 0.0.0.0 --port 8188</code> (default VRAM mode)
+      </p>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+        <div style="text-align:center;">
+          <img src="../Results-P8/small-models-7GB/aicuty-sdxl/D_aicuty_00001.png" alt="AiCuty SDXL - D: Gen5 NVMe" style="width:100%; border-radius:8px; border:1px solid var(--border);" loading="lazy">
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;"><strong>D:</strong> Gen5 NVMe (15.2s cold)</p>
+        </div>
+        <div style="text-align:center;">
+          <img src="../Results-P8/small-models-7GB/aicuty-sdxl/E_aicuty_00001.png" alt="AiCuty SDXL - E: SATA SSD" style="width:100%; border-radius:8px; border:1px solid var(--border);" loading="lazy">
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;"><strong>E:</strong> SATA SSD (17.3s cold)</p>
+        </div>
+        <div style="text-align:center;">
+          <img src="../Results-P8/small-models-7GB/aicuty-sdxl/D_aicuty_00002.png" alt="AiCuty SDXL - D: Run 2" style="width:100%; border-radius:8px; border:1px solid var(--border);" loading="lazy">
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;"><strong>D:</strong> Run 2 (13.2s median)</p>
+        </div>
+        <div style="text-align:center;">
+          <img src="../Results-P8/small-models-7GB/aicuty-sdxl/D_aicuty_00003.png" alt="AiCuty SDXL - D: Run 3" style="width:100%; border-radius:8px; border:1px solid var(--border);" loading="lazy">
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;"><strong>D:</strong> Run 3 (13.2s median)</p>
         </div>
       </div>
-      <div class="exp-card">
-        <div class="exp-icon">&gt;_</div>
-        <h3>コード生成 (Ollama qwen3)</h3>
-        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:8px;">
-          Prompt: <em>"じゃんけんゲームを HTML + JavaScript で作成してください"</em>
-        </p>
-        <pre class="code-block" style="font-size:0.8rem; max-height:120px; overflow:hidden;"><code>&lt;!-- qwen3:1.7b の実際の出力（予備調査） --&gt;
+    </div>
+
+    <!-- SDXL Basic Gallery -->
+    <div class="exp-card" style="margin-bottom:20px;">
+      <h3>&#128444; SDXL Basic — Small Models (~7GB) Checkpoint Only</h3>
+      <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:12px;">
+        Animagine XL 4.0 (6.46GB) / 832&times;1216 / euler 28 steps / CFG 5<br>
+        ComfyUI: <code>python main.py --listen 0.0.0.0 --port 8188</code>
+      </p>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+        <div style="text-align:center;">
+          <img src="../Results-P8/small-models-7GB/sdxl/D_sdxl_00001.png" alt="SDXL - D: Gen5 NVMe" style="width:100%; border-radius:8px; border:1px solid var(--border);" loading="lazy">
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;"><strong>D:</strong> Gen5 NVMe (6.1s cold)</p>
+        </div>
+        <div style="text-align:center;">
+          <img src="../Results-P8/small-models-7GB/sdxl/E_sdxl_00001.png" alt="SDXL - E: SATA SSD" style="width:100%; border-radius:8px; border:1px solid var(--border);" loading="lazy">
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;"><strong>E:</strong> SATA SSD (7.1s cold)</p>
+        </div>
+        <div style="text-align:center;">
+          <img src="../Results-P8/small-models-7GB/sdxl/F_sdxl_00001.png" alt="SDXL - F: HDD" style="width:100%; border-radius:8px; border:1px solid var(--border);" loading="lazy">
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;"><strong>F:</strong> HDD (7.2s cold)</p>
+        </div>
+        <div style="text-align:center;">
+          <img src="../Results-P8/small-models-7GB/sdxl/G_sdxl_00001.png" alt="SDXL - G: ICY DOCK" style="width:100%; border-radius:8px; border:1px solid var(--border);" loading="lazy">
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;"><strong>G:</strong> ICY DOCK (6.1s cold)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- LTX-Video Gallery -->
+    <div class="exp-card" style="margin-bottom:20px;">
+      <h3>&#127916; LTX-Video 2B — Medium Models (~15GB) Checkpoint + T5-XXL</h3>
+      <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:12px;">
+        LTX-Video 2B v0.9.5 (5.9GB) + T5-XXL FP16 (9.1GB) = ~15GB total<br>
+        512&times;320 / 25 frames @24fps / euler 20 steps / CFG 1.0 &rarr; animated WEBP<br>
+        ComfyUI: <code>python main.py --listen 0.0.0.0 --port 8188</code><br>
+        <strong style="color:#cf222e;">Cold start: D: 8.1s vs F: 60.9s = 7.5x difference</strong>
+      </p>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+        <div style="text-align:center;">
+          <img src="../Results-P8/medium-models-15GB/ltx-video-2b/D_ltx_video_00001.webp" alt="LTX-Video - D: Gen5 NVMe" style="width:100%; border-radius:8px; border:1px solid var(--border);" loading="lazy">
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;"><strong>D:</strong> Gen5 NVMe (<strong style="color:#1a7f37;">8.1s</strong> cold)</p>
+        </div>
+        <div style="text-align:center;">
+          <img src="../Results-P8/medium-models-15GB/ltx-video-2b/E_ltx_video_00001.webp" alt="LTX-Video - E: SATA SSD" style="width:100%; border-radius:8px; border:1px solid var(--border);" loading="lazy">
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;"><strong>E:</strong> SATA SSD (37.4s cold)</p>
+        </div>
+        <div style="text-align:center;">
+          <img src="../Results-P8/medium-models-15GB/ltx-video-2b/F_ltx_video_00001.webp" alt="LTX-Video - F: HDD" style="width:100%; border-radius:8px; border:1px solid var(--border);" loading="lazy">
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;"><strong>F:</strong> HDD (<strong style="color:#cf222e;">60.9s</strong> cold)</p>
+        </div>
+        <div style="text-align:center;">
+          <img src="../Results-P8/medium-models-15GB/ltx-video-2b/G_ltx_video_00001.webp" alt="LTX-Video - G: ICY DOCK" style="width:100%; border-radius:8px; border:1px solid var(--border);" loading="lazy">
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;"><strong>G:</strong> ICY DOCK (11.4s cold)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Code Generation -->
+    <div class="exp-card" style="margin-bottom:20px;">
+      <div class="exp-icon">&gt;_</div>
+      <h3>コード生成 (Ollama qwen3) — Small Models (~5GB)</h3>
+      <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:8px;">
+        Prompt: <em>"じゃんけんゲームを HTML + JavaScript で作成してください"</em><br>
+        R2 結果: 全ドライブで ~189 tok/s (8b) / ~445 tok/s (1.7b) — <strong>98GB VRAM で差なし</strong>
+      </p>
+      <pre class="code-block" style="font-size:0.8rem; max-height:120px; overflow:hidden;"><code>&lt;!-- qwen3:1.7b の実際の出力（予備調査） --&gt;
 Hier is een voorbeeld van een HTML +
 JavaScript pagina...
 &lt;button class="button"
   onclick="changeBackground()"&gt;
   Geen achtergrond
 &lt;/button&gt;</code></pre>
-        <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:8px;">
-          qwen3:1.7b は日本語プロンプトに対してオランダ語で応答。
-          小型モデルの多言語能力の限界を示す実例。
-          本実験では qwen3:8b でも同一プロンプトを検証。
-        </p>
-      </div>
-      <div class="exp-card">
-        <div class="exp-icon">&#127916;</div>
-        <h3>動画生成 (LTX 2.3 / Wan 2.2)</h3>
-        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:8px;">
-          ComfyUI + <strong>LTX-Video 2.3</strong> (22B FP8, ~29GB) と <strong>Wan 2.2</strong> (14B Dual-UNET, ~34GB) による AI 動画生成。
-          複数の巨大モデルをロード・オフロードする過程でストレージ速度が最も効くパイプライン。
-        </p>
-        <div style="background:#f6f8fa; border:1px solid var(--border); border-radius:8px; padding:40px; text-align:center; color:var(--text-secondary); font-size:0.85rem;">
-          動画クリップ (数秒) / LTX-Video 2.3 &amp; Wan 2.2 14B<br>
-          Wan 2.2: High/Low Noise UNET 切り替え + 4-step LoRA 高速化<br>
-          LTX 2.3: Low-res sampling &rarr; Latent Upscale &rarr; High-res sampling<br>
-          <span style="font-size:0.8rem;">&#x1F4CB; 本実験実行後にサンプル動画を掲載予定</span>
-        </div>
-      </div>
-      <div class="exp-card">
-        <div class="exp-icon">&#127908;</div>
-        <h3>音声合成 (Qwen3-TTS)</h3>
-        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:8px;">
-          夏目漱石「吾輩は猫である」、宮沢賢治「銀河鉄道の夜」等の青空文庫テキストを音声合成。
-        </p>
-        <div style="background:#f6f8fa; border:1px solid var(--border); border-radius:8px; padding:40px; text-align:center; color:var(--text-secondary); font-size:0.85rem;">
-          MP3 音声ファイル / Qwen3-TTS<br>
-          <span style="font-size:0.8rem;">&#x1F4CB; 本実験実行後にサンプル音声を掲載予定</span>
-        </div>
-      </div>
+      <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:8px;">
+        qwen3:1.7b は日本語プロンプトに対してオランダ語で応答。小型モデルの多言語能力の限界を示す実例。
+      </p>
     </div>
+
+    <!-- TTS / Coming soon -->
+    <div class="exp-card">
+      <div class="exp-icon">&#127908;</div>
+      <h3>音声合成 (Qwen3-TTS) — 予定</h3>
+      <p style="font-size:0.85rem; color:var(--text-secondary);">
+        Qwen3-TTS は Ollama 未対応のため HuggingFace/PyTorch 直接実行で R3 以降に計測予定。
+      </p>
+    </div>
+
     <p style="margin-top:16px; font-size:0.85rem; color:var(--text-secondary);">
-      ベンチマーク完了後、各実験の個別 HTML レポートが <code>results/reports/</code> に自動生成されます。
+      全生成物は <a href="https://github.com/aicuai/aicu-bench/tree/main/Results-P8" target="_blank" rel="noopener"><code>Results-P8/</code></a> にモデルサイズ別に格納。
+      ComfyUI ワークフロー JSON も同梱。
     </p>
   </div>
 </section>
@@ -577,7 +656,10 @@ cat results\bench_summary.json</code></pre>
     vibe_local_codegen_qwen3_8b:  { name: 'コード生成 (qwen3:8b)', unit: '秒', lower: true, icon: '>_' },
     vibe_local_codegen_qwen3_1_7b:{ name: 'コード生成 (qwen3:1.7b)', unit: '秒', lower: true, icon: '>_' },
     comfyui_imggen:    { name: '画像生成 (z-image-turbo)',unit: '秒', lower: true, icon: '\uD83D\uDDBC' },
+    comfyui_imggen_sdxl:       { name: '画像生成 SDXL (コールドスタート)', unit: '秒', lower: true, icon: '\uD83D\uDDBC' },
+    comfyui_imggen_aicuty_sdxl:{ name: '画像生成 AiCuty SDXL (Checkpoint+2LoRA+Upscaler)', unit: '秒', lower: true, icon: '\uD83D\uDDBC' },
     comfyui_ltx:       { name: '動画生成 (LTX-Video)',    unit: '秒', lower: true, icon: '\uD83C\uDFAC' },
+    comfyui_video:     { name: '動画生成 LTX-Video 2B (コールドスタート)', unit: '秒', lower: true, icon: '\uD83C\uDFAC' },
     qwen3tts:          { name: 'TTS 初動時間',            unit: '秒', lower: true, icon: '\uD83C\uDF99' }
   };
   var DRIVE_COLORS = ['#2f81f7','#f0883e','#da3633','#3fb950','#a371f7','#79c0ff','#d2a8ff','#ffa657'];
@@ -741,7 +823,9 @@ cat results\bench_summary.json</code></pre>
     var prefOrder = ['disk_speed','disk_speed_256MB','disk_speed_512MB','disk_speed_1024MB',
       'vibe_local_load','vibe_local_load_qwen3_8b','vibe_local_load_qwen3_1_7b',
       'vibe_local_codegen','vibe_local_codegen_qwen3_8b','vibe_local_codegen_qwen3_1_7b',
-      'comfyui_imggen','comfyui_ltx','qwen3tts'];
+      'comfyui_imggen','comfyui_imggen_sdxl','comfyui_imggen_aicuty_sdxl',
+      'comfyui_ltx','comfyui_video',
+      'qwen3tts'];
     var allKeys = Object.keys(data.experiments);
     var ordered = prefOrder.filter(function(k){ return allKeys.indexOf(k) >= 0; });
     allKeys.forEach(function(k){ if (ordered.indexOf(k) < 0) ordered.push(k); });
@@ -783,31 +867,31 @@ cat results\bench_summary.json</code></pre>
             <td><strong>vibe-local-bench</strong><br>Ollama LLM</td>
             <td>qwen3:8b (5.2GB) + qwen3:1.7b (1.4GB)</td>
             <td>~7 GB</td>
-            <td style="color:#1a7f37;"><strong>完了</strong> - C:/D: 両ドライブで計測済み</td>
+            <td style="color:#1a7f37;"><strong>完了</strong> - D/E/F/G 4ドライブで計測済み (R2)</td>
           </tr>
           <tr>
-            <td><strong>comfyui-imggen</strong><br>AiCuty SDXL</td>
+            <td><strong>comfyui-imggen</strong><br>SDXL + AiCuty SDXL</td>
             <td>Animagine XL 4.0 (7GB) + LoRA&times;2 + RealESRGAN</td>
             <td>~9 GB</td>
-            <td style="color:#cf222e;"><strong>N/A</strong> - VRAM 6GB + ページファイル不足 (OS error 1455)</td>
+            <td style="color:#1a7f37;"><strong>完了</strong> - D/E/F/G 4ドライブで計測済み (R2)。98GB VRAM で余裕動作</td>
           </tr>
           <tr>
-            <td><strong>comfyui-video</strong><br>Wan 2.2 14B</td>
-            <td>Dual UNET FP8 (14GB&times;2) + UMT5 + VAE + LoRA</td>
-            <td>~36 GB</td>
-            <td style="color:#cf222e;"><strong>N/A</strong> - ディスク容量不足 (1TB NVMe)</td>
+            <td><strong>comfyui-video</strong><br>LTX-Video 2B</td>
+            <td>LTX-Video 2B v0.9.5 (5.9GB) + T5-XXL FP16 (9.1GB)</td>
+            <td>~15 GB</td>
+            <td style="color:#1a7f37;"><strong>完了</strong> - D/E/F/G 4ドライブで計測済み (R2)。コールドスタートで最大7.5倍の差</td>
           </tr>
           <tr>
-            <td><strong>comfyui-video</strong><br>LTX 2.3 22B</td>
-            <td>LTX-2.3-22B FP8 (29GB) + Gemma 3 12B + Upscaler</td>
-            <td>~39 GB</td>
-            <td style="color:#cf222e;"><strong>N/A</strong> - ディスク容量不足 (1TB NVMe)</td>
+            <td><strong>comfyui-video</strong><br>Wan 2.2 / LTX 2.3</td>
+            <td>Wan 2.2 14B / LTX 2.3 22B FP8</td>
+            <td>~36-39 GB</td>
+            <td style="color:#bf5700;"><strong>予定</strong> - R3以降で追加予定</td>
           </tr>
           <tr>
             <td><strong>qwen3tts-bench</strong><br>TTS</td>
-            <td>Qwen3-TTS (est. 8GB via Ollama)</td>
-            <td>~9 GB</td>
-            <td style="color:#cf222e;"><strong>N/A</strong> - ディスク容量不足</td>
+            <td>Qwen3-TTS (HuggingFace/PyTorch 直接実行)</td>
+            <td>~8 GB</td>
+            <td style="color:#bf5700;"><strong>予定</strong> - Ollama未対応、PyTorch環境構築中</td>
           </tr>
         </tbody>
       </table>
