@@ -1,0 +1,18 @@
+﻿{
+    "experiment":  "summary-R4",
+    "drives":  [
+                   "D"
+               ],
+    "runs":  3,
+    "timestamp":  "2026-03-11T20:51:37.5590531+09:00",
+    "drive_usage":  [
+                        {
+                            "drive":  "D",
+                            "used_gb":  132.3,
+                            "free_gb":  7319.7
+                        }
+                    ],
+    "result_sizes":  [
+
+                     ]
+}
