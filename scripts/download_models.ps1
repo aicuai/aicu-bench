@@ -120,6 +120,80 @@ $HF_MODELS = @(
         dest     = "models\upscale_models"
         size_est = "17 MB"
         url      = "https://huggingface.co/nateraw/real-esrgan"
+    },
+    # --- LTX 2.3 (22B) ---
+    @{
+        name     = "LTX 2.3 22B FP8"
+        repo     = "Lightricks/LTX-2.3-fp8"
+        file     = "ltx-2.3-22b-dev-fp8.safetensors"
+        dest     = "models\checkpoints"
+        size_est = "22 GB"
+        url      = "https://huggingface.co/Lightricks/LTX-2.3-fp8"
+    },
+    @{
+        name     = "Gemma 3 12B IT FP4 (LTX 2.3 text encoder)"
+        repo     = "Comfy-Org/ltx-2"
+        file     = "split_files/text_encoders/gemma_3_12B_it_fp4_mixed.safetensors"
+        dest     = "models\text_encoders"
+        size_est = "6.5 GB"
+        url      = "https://huggingface.co/Comfy-Org/ltx-2"
+    },
+    @{
+        name     = "LTX 2.3 Distilled LoRA"
+        repo     = "Lightricks/LTX-2.3"
+        file     = "ltx-2.3-22b-distilled-lora-384.safetensors"
+        dest     = "models\loras"
+        size_est = "700 MB"
+        url      = "https://huggingface.co/Lightricks/LTX-2.3"
+    },
+    # --- Wan 2.2 14B ---
+    @{
+        name     = "Wan 2.2 T2V High Noise 14B FP8"
+        repo     = "Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        file     = "split_files/diffusion_models/wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors"
+        dest     = "models\diffusion_models"
+        size_est = "14 GB"
+        url      = "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+    },
+    @{
+        name     = "Wan 2.2 T2V Low Noise 14B FP8"
+        repo     = "Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        file     = "split_files/diffusion_models/wan2.2_t2v_low_noise_14B_fp8_scaled.safetensors"
+        dest     = "models\diffusion_models"
+        size_est = "14 GB"
+        url      = "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+    },
+    @{
+        name     = "UMT5-XXL FP8 (Wan 2.2 CLIP)"
+        repo     = "Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        file     = "split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors"
+        dest     = "models\clip"
+        size_est = "4.9 GB"
+        url      = "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+    },
+    @{
+        name     = "Wan 2.1 VAE"
+        repo     = "Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        file     = "split_files/vae/wan_2.1_vae.safetensors"
+        dest     = "models\vae"
+        size_est = "200 MB"
+        url      = "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+    },
+    @{
+        name     = "Wan 2.2 LightX2V LoRA High Noise"
+        repo     = "Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        file     = "split_files/loras/wan2.2_t2v_lightx2v_4steps_lora_v1.1_high_noise.safetensors"
+        dest     = "models\loras"
+        size_est = "1.4 GB"
+        url      = "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+    },
+    @{
+        name     = "Wan 2.2 LightX2V LoRA Low Noise"
+        repo     = "Comfy-Org/Wan_2.1_ComfyUI_repackaged"
+        file     = "split_files/loras/wan2.2_t2v_lightx2v_4steps_lora_v1.1_low_noise.safetensors"
+        dest     = "models\loras"
+        size_est = "1.4 GB"
+        url      = "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged"
     }
 )
 

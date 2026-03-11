@@ -241,7 +241,7 @@ def make_workflow(prompt_text: str, seed: int = 42) -> dict:
     return wf
 
 
-def run_single(prompt_id_label: str, prompt_text: str, is_cold: bool, seed: int = 42) -> dict:
+def run_single(prompt_id_label: str, prompt_text: str, is_cold: bool, seed: int = 42, run_timeout: int = 300) -> dict:
     if is_cold:
         free_comfyui_memory()
 
@@ -253,7 +253,7 @@ def run_single(prompt_id_label: str, prompt_text: str, is_cold: bool, seed: int 
         pid = queue_prompt(wf)
         if not pid:
             raise RuntimeError("Failed to queue prompt")
-        result = wait_for_completion(pid, timeout=300)
+        result = wait_for_completion(pid, timeout=run_timeout)
         elapsed = round(time.time() - start, 3)
         success = result.get("success", False)
     except Exception as e:
@@ -273,14 +273,14 @@ def run_single(prompt_id_label: str, prompt_text: str, is_cold: bool, seed: int 
     }
 
 
-def run_benchmark(drive: str, run_number: int, runs: int) -> dict:
+def run_benchmark(drive: str, run_number: int, runs: int, timeout: int = 300) -> dict:
     print(f"\n[{drive}] Run {run_number}/{runs}")
     results = []
 
     # コールドスタート（1枚目 = モデルロード込み）
     first = TEST_PROMPTS[0]
     print(f"  [cold] {first['id']}...", end=" ")
-    r = run_single(first["id"], first["prompt"], is_cold=True)
+    r = run_single(first["id"], first["prompt"], is_cold=True, run_timeout=timeout)
     print(f"{r['elapsed_s']}s ({'OK' if r['success'] else 'FAIL'})")
     cold_start_time = r["elapsed_s"] if r["success"] else None
     results.append(r)
@@ -288,7 +288,7 @@ def run_benchmark(drive: str, run_number: int, runs: int) -> dict:
     # ウォームスタート（残り）
     for tp in TEST_PROMPTS[1:]:
         print(f"  [warm] {tp['id']}...", end=" ")
-        r = run_single(tp["id"], tp["prompt"], is_cold=False)
+        r = run_single(tp["id"], tp["prompt"], is_cold=False, run_timeout=timeout)
         print(f"{r['elapsed_s']}s ({'OK' if r['success'] else 'FAIL'})")
         results.append(r)
 
@@ -331,6 +331,8 @@ def main():
     parser.add_argument("--host", type=str, default=COMFYUI_HOST, help="ComfyUI ホスト")
     parser.add_argument("--workflow", type=str, default=None,
                         help="外部ワークフロー JSON パス (workflows/sdxl.json 等)")
+    parser.add_argument("--timeout", type=int, default=300,
+                        help="1回あたりのタイムアウト秒数 (デフォルト: 300, R4推奨: 60)")
     args = parser.parse_args()
 
     COMFYUI_HOST = args.host
@@ -385,7 +387,7 @@ def main():
                 start = time.time()
                 try:
                     pid = queue_prompt(external_workflow)
-                    result = wait_for_completion(pid, timeout=600)
+                    result = wait_for_completion(pid, timeout=args.timeout)
                     elapsed = round(time.time() - start, 3)
                     success = result.get("success", False) if isinstance(result, dict) else bool(result)
                 except Exception as e:
@@ -402,7 +404,7 @@ def main():
                 start = time.time()
                 try:
                     pid = queue_prompt(external_workflow)
-                    result = wait_for_completion(pid, timeout=600)
+                    result = wait_for_completion(pid, timeout=args.timeout)
                     elapsed_w = round(time.time() - start, 3)
                     success_w = result.get("success", False) if isinstance(result, dict) else bool(result)
                 except Exception as e:
@@ -441,7 +443,7 @@ def main():
             # デフォルトモード: z-image-turbo (複数プロンプト)
             all_runs = []
             for i in range(1, args.runs + 1):
-                result = run_benchmark(drive, i, args.runs)
+                result = run_benchmark(drive, i, args.runs, timeout=args.timeout)
                 all_runs.append(result)
 
             cold_median = median([r["cold_start_s"] for r in all_runs if r["cold_start_s"] is not None])

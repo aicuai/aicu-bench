@@ -306,7 +306,7 @@ def wait_for_completion(prompt_id: str, timeout: int = 600) -> dict:
     return {"error": True, "timeout": True}
 
 
-def run_benchmark(drive: str, run_number: int, runs: int, workflow: dict, workflow_type: str) -> dict:
+def run_benchmark(drive: str, run_number: int, runs: int, workflow: dict, workflow_type: str, timeout: int = 600) -> dict:
     """1回分のベンチマークを実行（コールドスタート）"""
     print(f"[{drive}] Run {run_number}/{runs} - Freeing memory...")
     free_comfyui_memory()
@@ -317,7 +317,7 @@ def run_benchmark(drive: str, run_number: int, runs: int, workflow: dict, workfl
     start_time = time.time()
     try:
         prompt_id = queue_prompt(workflow)
-        result = wait_for_completion(prompt_id, timeout=600)
+        result = wait_for_completion(prompt_id, timeout=timeout)
         elapsed = round(time.time() - start_time, 3)
         success = "error" not in result
     except Exception as e:
@@ -369,6 +369,8 @@ def main():
     parser.add_argument("--force-fallback", action="store_true", help="LTXVノード未使用で汎用ワークフロー強制")
     parser.add_argument("--workflow", type=str, default=None,
                         help="外部ワークフロー JSON パス (workflows/wan2_2_14B_t2v_api.json 等)")
+    parser.add_argument("--timeout", type=int, default=600,
+                        help="1回あたりのタイムアウト秒数 (デフォルト: 600, R4推奨: 60)")
     args = parser.parse_args()
 
     COMFYUI_HOST = args.host
@@ -422,7 +424,7 @@ def main():
         results = []
 
         for i in range(1, args.runs + 1):
-            result = run_benchmark(drive, i, args.runs, workflow, workflow_type)
+            result = run_benchmark(drive, i, args.runs, workflow, workflow_type, timeout=args.timeout)
             results.append(result)
 
         # 中央値
