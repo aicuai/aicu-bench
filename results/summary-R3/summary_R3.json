@@ -7,7 +7,7 @@
                    "G"
                ],
     "runs":  3,
-    "timestamp":  "2026-03-11T19:29:09.9368090+09:00",
+    "timestamp":  "2026-03-11T19:31:23.2905596+09:00",
     "drive_usage":  [
                         {
                             "drive":  "D",
@@ -59,12 +59,17 @@
                          {
                              "directory":  "llm-jp-moshi-bench-R3",
                              "size_mb":  0,
-                             "files":  0
+                             "files":  4
                          },
                          {
                              "directory":  "qwen3tts-bench-R3",
                              "size_mb":  5.4,
                              "files":  5
+                         },
+                         {
+                             "directory":  "summary-R3",
+                             "size_mb":  0,
+                             "files":  1
                          },
                          {
                              "directory":  "vibe-local-bench-R3",
