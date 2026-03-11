@@ -1,0 +1,185 @@
+﻿Hier is een overzicht van de belangrijkste onderwerpen in HTML + JavaScript, met praktische voorbeelden:
+
+---
+
+### 1. **HTML - Structuur en basis**
+HTML is de taal van het web. Hier zijn de belangrijkste elementen:
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gebruik HTML</title>
+</head>
+<body>
+    <h1>Voetbalclub</h1>
+    <p>De beste voetbalclub in de stad.</p>
+    <div id="aanbod">Aanbod: 10 €</div>
+</body>
+</html>
+```
+- **`<h1>`** tot **`<h6>`** = titel of hoofdtitel  
+- **`<p>`** = paragraaf  
+- **`<div>`** = groter, flexibeler container  
+- **`<ul>`** en **`<li>`** = lijsten  
+- **`<a>`** = link  
+- **`<img>`** = afbeelding  
+
+---
+
+### 2. **JavaScript - Basisprincipes**
+JavaScript maakt interactiviteit mogelijk. Hier zijn de basisconcepten:
+```javascript
+// Variabelen en data types
+let naam = "Alice";
+let leeftijd = 25;
+
+// Functies
+function gelieveGreeting() {
+    alert("Hallo, " + naam + "!"); // Alert is voor testen
+}
+
+// Evenwijdige code
+document.getElementById("aanbod").innerText = "20 €";
+```
+- **`<script>`** tag = code in HTML  
+- **`addEventListener`** = hulp voor interactiviteit (bijv. klikken)  
+- **`console.log()`** = voor testen (zoals in de browser console)
+
+---
+
+### 3. **CSS - Styling van HTML**
+CSS maakt de inhoud visueel. Hier zijn basisregels:
+```css
+/* Styling van de div */
+#aanbod {
+    color: red;
+    font-size: 20px;
+}
+
+/* Styling van de h1 */
+h1 {
+    background-color: #f0f0f0;
+    padding: 10px;
+}
+```
+- **Selector** = bepaalde elementen (bijv. `#aanbod`, `h1`)  
+- **Propertes** = eigenschappen (bijv. `color`, `font-size`)  
+- **Klassen** = voor hergebruik (bijv. `.aanbod`)
+
+---
+
+### 4. **Voeg een interactiviteit toe**
+Voeg een knop toe die tekst wijkt:
+```html
+<button onclick="zoek()">Zoek</button>
+<p id="resultaat"></p>
+```
+```javascript
+function zoek() {
+    let zoekwoord = document.getElementById("zoekwoord").value;
+    document.getElementById("resultaat").innerText = "Zoekwoord: " + zoekwoord;
+}
+```
+
+---
+
+### 5. **Voeg een formulier toe**
+Een formulier maakt het makkelijker om gegevens in te vullen:
+```html
+<form id="contactForm">
+    <input type="text" placeholder="Voornaam" required>
+    <input type="email" placeholder="Email" required>
+    <button type="submit">Verzenden</button>
+</form>
+```
+```javascript
+document.getElementById("contactForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    let voornaam = document.querySelector("input[type='text']").value;
+    let email = document.querySelector("input[type='email']").value;
+    alert("Bedankt! Je hebt geïmplementeerd: " + voornaam + " - " + email);
+});
+```
+
+---
+
+### 6. **Voeg een animatie toe**
+Gebruik JavaScript om elementen te bewegen:
+```javascript
+function startMove() {
+    let element = document.getElementById("aanbod");
+    let x = 0;
+    let interval = setInterval(() => {
+        x += 10;
+        element.style.left = x + "px";
+        if (x > 200) clearInterval(interval);
+    }, 10);
+}
+```
+Voeg dit toe in de `<body>` of gebruik `addEventListener`:
+
+```javascript
+document.addEventListener("DOMContentLoaded", startMove);
+```
+
+---
+
+### 7. **Voeg een knop toe met JavaScript**
+Een knop die tekst wijkt:
+```html
+<button id="knop">Klik hier</button>
+<p id="tekst"></p>
+```
+```javascript
+document.getElementById("knop").addEventListener("click", () => {
+    document.getElementById("tekst").innerText = "Klik op de knop!";
+});
+```
+
+---
+
+### 8. **Voeg een timer toe**
+Gebruik `setTimeout` of `setInterval`:
+```javascript
+setTimeout(() => {
+    alert("3 seconden!");
+}, 3000);
+```
+
+---
+
+### 9. **Voeg een dropdown toe**
+Een dropdown met opties:
+```html
+<select id="maand">
+    <option value="januari">Januari</option>
+    <option value="februari">Februari</option>
+</select>
+```
+```javascript
+document.getElementById("maand").addEventListener("change", function() {
+    let maand = this.value;
+    alert("Je hebt " + maand + " gekozen!");
+});
+```
+
+---
+
+### 10. **Voeg een footer toe**
+Een footer met informatie:
+```html
+<footer>
+    <p>© 2023 Voetbalclub. Alle rechten voorbehouden.</p>
+</footer>
+```
+
+---
+
+### 🔧 Tips
+- **Zorg voor HTML5** (bijv. `<meta charset="UTF-8">`)  
+- **Gebruik `DOMContentLoaded`** om code te laten uitvoeren na het laden van de pagina  
+- **Test met de browser console** (Ctrl+Shift+I) voor fouten  
+
+---
+
+Als je specifieke vraag hebt (bijv. "hoe maak ik een knop met JavaScript"), laat het weten! 🚀

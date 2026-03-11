@@ -1,0 +1,107 @@
+﻿Hier is een overzicht van de belangrijkste aspecten van HTML, JavaScript en CSS, met een voorbeeld van hoe ze samen werken:
+
+---
+
+### 1. **HTML (HyperText Markup Language)**
+HTML is het basisbestand van een webpagina. Het bevat elementen zoals `<h1>`, `<p>`, `<ul>`, `<button>` en meer.
+
+**Voorbeeld:**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Geen Titel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Geen Titel</h1>
+    <p>dit is een paragraaf.</p>
+    <button onclick="alert('Klik op het knopje!')">Klik op het knopje</button>
+</body>
+</html>
+```
+
+---
+
+### 2. **JavaScript (JS)**
+JavaScript is een scripting-taal die gebruikt wordt om interactiviteit en dynamische functies toe te voegen aan webpagina's.
+
+**Voorbeeld:**
+```javascript
+document.querySelector('button').addEventListener('click', function() {
+    alert('Je hebt het knopje geklikt!');
+});
+```
+
+---
+
+### 3. **CSS (Cascading Style Sheets)**
+CSS wordt gebruikt om de stijl van HTML-elementen te bepalen. Het bevat selectors, eigenschappen en mappen.
+
+**Voorbeeld:**
+```css
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+}
+```
+
+---
+
+### 4. **Samenvatting van de punten**
+- **HTML** bevat de structuur van de webpagina.
+- **JavaScript** maakt de pagina interaktief.
+- **CSS** bepaalt de stijl en layout van de HTML.
+
+---
+
+### 5. **Voorbeeld van een volledig webpagina**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Geen Titel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Geen Titel</h1>
+    <p>dit is een paragraaf.</p>
+    <button onclick="alert('Klik op het knopje!')">Klik op het knopje</button>
+</body>
+</html>
+```
+
+**CSS (in styles.css):**
+```css
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+}
+```
+
+---
+
+### 6. **Tips en aanvullingen**
+- **Semantic HTML**: Gebruik `<header>`, `<nav>`, `<main>`, `<footer>` voor beter gebruik.
+- **Responsive Design**: Gebruik media queries in CSS voor een geschikte layout op verschillende screens.
+- **Debuggen**: Gebruik de browser's devtools (F12) om JavaScript en CSS te debuggen.
+
+---
+
+Als je meer wilt weten over een specifieke aspect (zoals animaties, formularia, of responsive design), neem dan contact op! 🌐💻

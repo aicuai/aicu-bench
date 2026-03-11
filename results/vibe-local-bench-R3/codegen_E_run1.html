@@ -1,0 +1,104 @@
+﻿Here's a complete HTML file that covers the topics you mentioned, including **HTML basics**, **JavaScript basics**, **JavaScript concepts**, **CSS styling**, and **HTML + JavaScript integration**. The code is structured to demonstrate each concept clearly.
+
+---
+
+### ✅ **HTML + JavaScript + CSS Combined Example**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML + JavaScript + CSS Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e0f7d6;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HTML + JavaScript + CSS Example</h1>
+        <p>Click the button to see JavaScript in action!</p>
+        <button id="runScript">Run Script</button>
+        <div class="result" id="output"></div>
+    </div>
+
+    <script>
+        // JavaScript basics
+        const output = document.getElementById('output');
+        const runScript = document.getElementById('runScript');
+
+        runScript.addEventListener('click', () => {
+            output.textContent = "JavaScript is running!";
+        });
+
+        // HTML + JavaScript integration
+        const heading = document.createElement('h1');
+        heading.textContent = "Hello, World!";
+        document.body.appendChild(heading);
+
+        // CSS styling
+        const style = document.createElement('style');
+        style.textContent = `
+            .result {
+                color: blue;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
+```
+
+---
+
+### 📌 **Topics Covered**
+
+1. **HTML Basics**  
+   - Structure: `<!DOCTYPE html>`, `<html>`, `<head>`, `<body>`  
+   - Example: Simple heading and paragraph.
+
+2. **JavaScript Basics**  
+   - Variables, data types, and functions  
+   - Example: A button that displays "JavaScript is running!".
+
+3. **JavaScript Concepts**  
+   - Loops (`for`, `while`), conditionals (`if`, `else`), and event handling (`click` event).
+
+4. **CSS Styling**  
+   - Basic CSS selectors (`h1`, `div`), styles, and layout (e.g., `padding`, `background-color`).
+
+5. **HTML + JavaScript Integration**  
+   - Embedding JavaScript in HTML (via `<script>` tags)  
+   - Example: Dynamically adding a heading using JavaScript.
+
+---
+
+### 📝 **How to Use**
+1. Copy the code above into a file named `index.html`.
+2. Open it in a browser.
+3. Click the "Run Script" button to see JavaScript in action.
+4. Observe how CSS is applied to the output.
+
+---
+
+Let me know if you'd like to expand this with advanced topics like DOM manipulation, event handlers, or animations! 🚀

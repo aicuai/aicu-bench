@@ -1,0 +1,127 @@
+﻿Hier is een overzicht van de basisstructuur van een HTML-document, met een focus op de belangrijkste delen en de integratie van CSS en JavaScript:
+
+---
+
+### **1. Doctype (Type definitie)**
+```html
+<!DOCTYPE html>
+```
+- Deze lijn zegt het browser dat het een **HTML5-document** is.
+- **Alternatief**: `<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/1996/03/04/dtd/HTML401.dtd">` (voor HTML4).
+
+---
+
+### **2. HTML-element**
+```html
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>My Website</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <!-- Content here -->
+  </body>
+</html>
+```
+
+---
+
+### **3. Head (Header)**
+- Bevat informatie die voor de browser en zoekmotoren belangrijk is.
+- **Belangrijke tags**:
+  - `<meta charset="UTF-8">`: Stelt de charset in (voor compatibiliteit).
+  - `<title>`: De titel van het document (uitgezet in de zoekresultaten).
+  - `<link rel="stylesheet" href="styles.css">`: Verbindt een externe CSS-bestand.
+
+---
+
+### **4. Body (Bod)**
+- Bevat de inhoud van het document (zoals tekst, afbeeldingen, links, en meer).
+- **Belangrijke tags**:
+  - `<h1>...</h1>`: De grootste hoofdtitel.
+  - `<p>...</p>`: Een paragraaf.
+  - `<ul>`/`<ol>`: Lijsten.
+  - `<a href="...">...</a>`: Links naar andere pagina's.
+  - `<img src="..." alt="...">`: Afbeeldingen.
+
+---
+
+### **5. CSS (Cascading Style Sheets)**
+- Gebruikt om de uitvoering van HTML-elementen te stylisen.
+- **Voorbeeld van externe CSS**:
+  ```css
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+  }
+  ```
+- **Interna of externe CSS**:
+  - **Interna**: `<style>...</style>` (in de `<head>`).
+  - **Externe**: `link rel="stylesheet"`.
+
+---
+
+### **6. JavaScript (Programming Language)**
+- Gebruikt om interactie en dynamische functies toe te voegen.
+- **Voorbeeld van een simpel script**:
+  ```javascript
+  document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("myButton").addEventListener("click", function() {
+      alert("Klik op het knopje!");
+    });
+  });
+  ```
+- **Belangrijke concepten**:
+  - `window.onload`: Voordat de pagina volledig is geladen.
+  - `document.getElementById()` voor het selecteren van elementen.
+  - `addEventListener()` voor eventbehandeling (zoals klikken, scrollen, etc.).
+
+---
+
+### **7. Voorbeeld van een volledig HTML-document**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>My Website</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>My Website</h1>
+  </header>
+  <main>
+    <p>Welkom op mijn website!</p>
+    <button id="myButton">Klik hier!</button>
+  </main>
+  <footer>
+    <p>&copy; 2023 My Website</p>
+  </footer>
+  <script>
+    document.getElementById("myButton").addEventListener("click", function() {
+      alert("Klik op het knopje!");
+    });
+  </script>
+</body>
+</html>
+```
+
+---
+
+### **8. Tips en aanbevolen praktijken**
+- **Semantische tags**: Gebruik `<header>`, `<nav>`, `<main>`, `<footer>` voor betrouwbaarheid en toegankelijkheid.
+- **Proper indentation**: Zorg dat je code goed geindenteerd is (bijv. `  <h1>...`).
+- **Valid HTML**: Gebruik online tools zoals [validator.w3.org](https://validator.w3.org/) om fouten te detecteren.
+- **Responsive design**: Gebruik `<meta name="viewport">` in `<head>` voor mobiele weergave.
+
+---
+
+### **9. Aanvullende informatie**
+- **JavaScript en DOM**: De DOM (Document Object Model) is een structurele representatie van het HTML-document. JavaScript maakt gebruik van de DOM om elementen te manipuleren.
+- **Event handling**: Gebruik `addEventListener()` om interactie te verwerken (zoals klikken, scrollen, of het versturen van formulieren).
+
+---
+
+Als je wilt, kan ik je helpen met een specifieke functie (zoals een animatie, een formulier, of een dynamisch menu) uitwerken!

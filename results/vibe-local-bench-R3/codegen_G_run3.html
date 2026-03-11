@@ -1,0 +1,87 @@
+﻿Here's a simple example of a basic HTML webpage with **HTML**, **CSS**, and **JavaScript** integration. This includes:
+
+- **HTML structure** (head, body)
+- **CSS styling** (inline, internal, external)
+- **JavaScript functionality** (button interaction)
+
+---
+
+### ✅ **1. HTML Structure**
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Webpage</title>
+    <link rel="stylesheet" href="styles.css"> <!-- External CSS -->
+</head>
+<body>
+    <h1>Welcome to My Website</h1>
+    <p>This is a simple paragraph.</p>
+    <button onclick="changeText()">Click Me!</button>
+    <script src="script.js"></script> <!-- External JavaScript -->
+</body>
+</html>
+```
+
+---
+
+### ✅ **2. CSS Styling (styles.css)**
+```css
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+}
+
+h1 {
+    color: #333;
+    text-align: center;
+}
+
+p {
+    margin: 20px;
+    font-size: 18px;
+}
+
+button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+```
+
+---
+
+### ✅ **3. JavaScript Functionality (script.js)**
+```javascript
+function changeText() {
+    document.querySelector('h1').innerText = "You clicked the button!";
+}
+```
+
+---
+
+### 🧩 **How It Works**
+1. **HTML** defines the structure (head with title, body with content).
+2. **CSS** styles the content (e.g., colors, fonts, layout).
+3. **JavaScript** adds interactivity (e.g., changing text on button click).
+
+---
+
+### 📝 **Tips**
+- Use **semantic tags** (e.g., `<header>`, `<nav>`, `<section>`) for better structure.
+- **External files** (CSS/JS) improve organization and maintenance.
+- **Responsive design** can be added with media queries.
+
+---
+
+### 🛠️ **Expand It**
+Add more elements:
+- **Images**: `<img src="image.jpg">`
+- **Forms**: `<form>...</form>`
+- **Animations**: Use CSS transitions or JavaScript for dynamic effects.
+
+Let me know if you want to add specific features (e.g., dark mode, form validation)! 😊

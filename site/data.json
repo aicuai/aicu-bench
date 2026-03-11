@@ -339,7 +339,163 @@
         "G"
       ],
       "model": "llm-jp/llm-jp-moshi-v1"
+    },
+    "vibe_local_load_r3_qwen3_1.7b": {
+      "drives": {
+        "D": {
+          "drive": "D",
+          "median_s": 1.819,
+          "runs": 3,
+          "generated": "2026-03-11T18:42:30.9872363+09:00",
+          "runner_started_s": 0.88
+        },
+        "E": {
+          "drive": "E",
+          "median_s": 1.831,
+          "runs": 3,
+          "generated": "2026-03-11T18:45:38.8777959+09:00",
+          "runner_started_s": 1.1
+        },
+        "F": {
+          "drive": "F",
+          "median_s": 1.554,
+          "runs": 3,
+          "generated": "2026-03-11T18:48:48.0465674+09:00",
+          "runner_started_s": 1.1
+        },
+        "G": {
+          "drive": "G",
+          "median_s": 1.545,
+          "runs": 3,
+          "generated": "2026-03-11T18:51:59.1877013+09:00",
+          "runner_started_s": 0.83
+        }
+      },
+      "drive_order": [
+        "D",
+        "E",
+        "F",
+        "G"
+      ],
+      "model": "qwen3:1.7b"
+    },
+    "vibe_local_load_r3_qwen3_8b": {
+      "drives": {
+        "D": {
+          "drive": "D",
+          "median_s": 3.092,
+          "runs": 3,
+          "generated": "2026-03-11T18:41:43.2777290+09:00",
+          "runner_started_s": 1.77
+        },
+        "E": {
+          "drive": "E",
+          "median_s": 2.884,
+          "runs": 3,
+          "generated": "2026-03-11T18:44:51.1617250+09:00",
+          "runner_started_s": 1.9
+        },
+        "F": {
+          "drive": "F",
+          "median_s": 2.638,
+          "runs": 3,
+          "generated": "2026-03-11T18:48:00.6705874+09:00",
+          "runner_started_s": 1.64
+        },
+        "G": {
+          "drive": "G",
+          "median_s": 2.664,
+          "runs": 3,
+          "generated": "2026-03-11T18:51:12.0495538+09:00",
+          "runner_started_s": 1.65
+        }
+      },
+      "drive_order": [
+        "D",
+        "E",
+        "F",
+        "G"
+      ],
+      "model": "qwen3:8b"
+    },
+    "vibe_local_codegen_r3_qwen3_1.7b": {
+      "drives": {
+        "D": {
+          "drive": "D",
+          "median_s": 5.692,
+          "runs": 3,
+          "generated": "2026-03-11T18:43:42.2687466+09:00",
+          "avg_tokens_per_sec": 386.11
+        },
+        "E": {
+          "drive": "E",
+          "median_s": 5.442,
+          "runs": 3,
+          "generated": "2026-03-11T18:46:52.3842828+09:00",
+          "avg_tokens_per_sec": 386.37
+        },
+        "F": {
+          "drive": "F",
+          "median_s": 3.563,
+          "runs": 3,
+          "generated": "2026-03-11T18:50:03.9353843+09:00",
+          "avg_tokens_per_sec": 390.27
+        },
+        "G": {
+          "drive": "G",
+          "median_s": 4.491,
+          "runs": 3,
+          "generated": "2026-03-11T18:53:25.6789573+09:00",
+          "avg_tokens_per_sec": 379.63
+        }
+      },
+      "drive_order": [
+        "D",
+        "E",
+        "F",
+        "G"
+      ],
+      "model": "qwen3:1.7b"
+    },
+    "vibe_local_codegen_r3_qwen3_8b": {
+      "drives": {
+        "D": {
+          "drive": "D",
+          "median_s": 9.369,
+          "runs": 3,
+          "generated": "2026-03-11T18:43:16.7617238+09:00",
+          "avg_tokens_per_sec": 185.87
+        },
+        "E": {
+          "drive": "E",
+          "median_s": 7.91,
+          "runs": 3,
+          "generated": "2026-03-11T18:46:27.5637341+09:00",
+          "avg_tokens_per_sec": 184.58
+        },
+        "F": {
+          "drive": "F",
+          "median_s": 11.12,
+          "runs": 3,
+          "generated": "2026-03-11T18:49:43.1358723+09:00",
+          "avg_tokens_per_sec": 185.35
+        },
+        "G": {
+          "drive": "G",
+          "median_s": 13.778,
+          "runs": 3,
+          "generated": "2026-03-11T18:53:04.4524484+09:00",
+          "avg_tokens_per_sec": 185.33
+        }
+      },
+      "drive_order": [
+        "D",
+        "E",
+        "F",
+        "G"
+      ],
+      "model": "qwen3:8b"
     }
   },
-  "updated": "2026-03-11T18:38:26.852126"
+  "updated": "2026-03-11T18:53:27.917734"
 }
