@@ -1,0 +1,60 @@
+{
+  "system_stats": {
+    "system": {
+      "os": "win32",
+      "ram_total": 205463932928,
+      "ram_free": 181092245504,
+      "comfyui_version": "0.16.4",
+      "required_frontend_version": "1.39.19",
+      "installed_templates_version": "0.9.18",
+      "required_templates_version": "0.9.18",
+      "python_version": "3.13.12 (tags/v3.13.12:1cbe481, Feb  3 2026, 18:22:25) [MSC v.1944 64 bit (AMD64)]",
+      "pytorch_version": "2.10.0+cu128",
+      "embedded_python": false,
+      "argv": [
+        "main.py",
+        "--listen",
+        "0.0.0.0",
+        "--port",
+        "8188"
+      ]
+    },
+    "devices": [
+      {
+        "name": "cuda:0 NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition : cudaMallocAsync",
+        "type": "cuda",
+        "index": 0,
+        "vram_total": 102641500160,
+        "vram_free": 100713627648,
+        "torch_vram_total": 0,
+        "torch_vram_free": 0
+      }
+    ]
+  },
+  "node_info": {
+    "total_nodes": 648,
+    "ltx_nodes": [
+      "ModelMergeLTXV",
+      "LTXVLatentUpsampler",
+      "LTXVAudioVAELoader",
+      "LTXVAudioVAEEncode",
+      "LTXVAudioVAEDecode",
+      "LTXVEmptyLatentAudio",
+      "LTXAVTextEncoderLoader",
+      "EmptyLTXVLatentVideo",
+      "LTXVImgToVideo",
+      "LTXVImgToVideoInplace",
+      "ModelSamplingLTXV",
+      "LTXVConditioning",
+      "LTXVScheduler",
+      "LTXVAddGuide",
+      "LTXVPreprocess",
+      "LTXVCropGuides",
+      "LTXVConcatAVLatent",
+      "LTXVSeparateAVLatent",
+      "TextGenerateLTX2Prompt",
+      "LtxvApiTextToVideo",
+      "LtxvApiImageToVideo"
+    ]
+  }
+}
