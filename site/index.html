@@ -660,7 +660,8 @@ cat results\bench_summary.json</code></pre>
     comfyui_imggen_aicuty_sdxl:{ name: '画像生成 AiCuty SDXL (Checkpoint+2LoRA+Upscaler)', unit: '秒', lower: true, icon: '\uD83D\uDDBC' },
     comfyui_ltx:       { name: '動画生成 (LTX-Video)',    unit: '秒', lower: true, icon: '\uD83C\uDFAC' },
     comfyui_video:     { name: '動画生成 LTX-Video 2B (コールドスタート)', unit: '秒', lower: true, icon: '\uD83C\uDFAC' },
-    qwen3tts:          { name: 'TTS 初動時間',            unit: '秒', lower: true, icon: '\uD83C\uDF99' }
+    qwen3tts:          { name: 'Qwen3-TTS 音声合成 (モデルロード+生成)', unit: '秒', lower: true, icon: '\uD83C\uDF99' },
+    llm_jp_moshi:      { name: 'llm-jp-moshi 15.6GB モデルロード', unit: '秒', lower: true, icon: '\uD83C\uDF99' }
   };
   var DRIVE_COLORS = ['#2f81f7','#f0883e','#da3633','#3fb950','#a371f7','#79c0ff','#d2a8ff','#ffa657'];
   var DRIVE_META = {
@@ -825,7 +826,7 @@ cat results\bench_summary.json</code></pre>
       'vibe_local_codegen','vibe_local_codegen_qwen3_8b','vibe_local_codegen_qwen3_1_7b',
       'comfyui_imggen','comfyui_imggen_sdxl','comfyui_imggen_aicuty_sdxl',
       'comfyui_ltx','comfyui_video',
-      'qwen3tts'];
+      'qwen3tts','llm_jp_moshi'];
     var allKeys = Object.keys(data.experiments);
     var ordered = prefOrder.filter(function(k){ return allKeys.indexOf(k) >= 0; });
     allKeys.forEach(function(k){ if (ordered.indexOf(k) < 0) ordered.push(k); });

@@ -38,6 +38,7 @@ def load_results(results_dir: Path) -> dict:
 
     # 各実験ディレクトリ
     experiments = [
+        # R1/R2 baseline
         ("vibe-local-bench", "load_*.json", "vibe_local_load"),
         ("vibe-local-bench", "codegen_*.json", "vibe_local_codegen"),
         ("disk-speed-bench", "diskspeed_*.json", "disk_speed"),
@@ -45,6 +46,18 @@ def load_results(results_dir: Path) -> dict:
         ("comfyui-ltx-bench", "comfyui_*.json", "comfyui_ltx"),
         ("comfyui-video-bench", "video_*.json", "comfyui_video"),
         ("qwen3tts-bench", "tts_*.json", "qwen3tts"),
+        ("llm-jp-moshi-bench", "moshi_*.json", "llm_jp_moshi"),
+        # R3
+        ("disk-speed-bench-R3", "diskspec_*.json", "disk_spec_r3"),
+        ("vibe-local-bench-R3", "load_*.json", "vibe_local_load_r3"),
+        ("vibe-local-bench-R3", "codegen_*.json", "vibe_local_codegen_r3"),
+        ("comfyui-imggen-bench-R3", "imggen_*.json", "comfyui_imggen_r3"),
+        ("comfyui-aicuty-bench-R3", "imggen_*.json", "comfyui_aicuty_r3"),
+        ("comfyui-wan2-bench-R3", "video_*.json", "comfyui_wan2_r3"),
+        ("comfyui-ltx2-bench-R3", "video_*.json", "comfyui_ltx2_r3"),
+        ("comfyui-pipeline-bench-R3", "pipeline_*.json", "comfyui_pipeline_r3"),
+        ("qwen3tts-bench-R3", "tts_*.json", "qwen3tts_r3"),
+        ("llm-jp-moshi-bench-R3", "moshi_*.json", "llm_jp_moshi_r3"),
     ]
 
     for subdir, pattern, base_key in experiments:

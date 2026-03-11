@@ -269,7 +269,63 @@
         "G"
       ],
       "model": "ltx_2b_t2v_bench"
+    },
+    "qwen3tts": {
+      "drives": {
+        "D": {
+          "drive": "D",
+          "median_s": 9.803,
+          "runs": 3,
+          "generated": "2026-03-11T14:45:23.657423"
+        },
+        "E": {
+          "drive": "E",
+          "median_s": 8.64,
+          "runs": 3,
+          "generated": "2026-03-11T15:06:21.510441"
+        }
+      },
+      "drive_order": [
+        "D",
+        "E"
+      ],
+      "model": "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"
+    },
+    "llm_jp_moshi": {
+      "drives": {
+        "D": {
+          "drive": "D",
+          "median_s": 9.006,
+          "runs": 3,
+          "generated": "2026-03-11T15:07:04.731272"
+        },
+        "E": {
+          "drive": "E",
+          "median_s": 9.118,
+          "runs": 3,
+          "generated": "2026-03-11T15:07:34.699806"
+        },
+        "F": {
+          "drive": "F",
+          "median_s": 10.349,
+          "runs": 3,
+          "generated": "2026-03-11T15:08:07.621978"
+        },
+        "G": {
+          "drive": "G",
+          "median_s": 11.434,
+          "runs": 3,
+          "generated": "2026-03-11T15:08:43.949243"
+        }
+      },
+      "drive_order": [
+        "D",
+        "E",
+        "F",
+        "G"
+      ],
+      "model": "llm-jp/llm-jp-moshi-v1"
     }
   },
-  "updated": "2026-03-11T14:04:48.372559"
+  "updated": "2026-03-11T15:10:29.063166"
 }
