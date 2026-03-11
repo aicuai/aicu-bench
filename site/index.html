@@ -201,63 +201,146 @@
 </section>
 
 <!-- 実験構成 -->
-<section>
+<section id="experiments">
   <div class="container">
     <h2 class="section-title">実験構成</h2>
+
+    <!-- 実験インデックス -->
+    <div style="background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius); padding:20px 24px; margin-bottom:28px;">
+      <h3 style="margin-bottom:12px; font-size:1.1rem;">実験インデックス</h3>
+      <table class="storage-table" style="margin:0;">
+        <thead>
+          <tr><th style="width:60px;">#</th><th style="width:240px;">実験名</th><th>内容</th><th style="width:80px;">状態</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Ex0</strong></td><td>disk-speed-bench</td><td>ダミーファイルを使ったシーケンシャル速度スペックチェック</td><td style="color:#1a7f37;"><strong>完了</strong></td></tr>
+          <tr><td><strong>Ex1</strong></td><td>download-bench</td><td>ダウンロード速度を通した実操作計測</td><td style="color:#1a7f37;"><strong>完了</strong></td></tr>
+          <tr><td><strong>Ex2</strong></td><td>vibe-local-bench</td><td>Local LLM (Ollama qwen3) でのコーディング &amp; コールドスタート調査</td><td style="color:#1a7f37;"><strong>完了</strong></td></tr>
+          <tr><td><strong>Ex3</strong></td><td>comfyui-imggen-bench (SDXL)</td><td>ComfyUI 画像生成 — SDXL Checkpoint 単体</td><td style="color:#1a7f37;"><strong>完了</strong></td></tr>
+          <tr><td><strong>Ex4</strong></td><td>comfyui-imggen-bench (AiCuty)</td><td>ComfyUI 画像生成 — 複数モデル比較 (SDXL, WAI, AnimagineXL4, Mellow Pencil)</td><td style="color:#bf5700;"><strong>予定</strong></td></tr>
+          <tr><td><strong>Ex5</strong></td><td>comfyui-video-bench (Wan 2.2)</td><td>ComfyUI 動画生成 — Wan 2.2 t2v / i2v 公式ワークフロー API</td><td style="color:#bf5700;"><strong>予定</strong></td></tr>
+          <tr><td><strong>Ex6</strong></td><td>comfyui-video-bench (LTX 2.3)</td><td>ComfyUI 動画生成 — LTX 2.3 t2v / i2v</td><td style="color:#bf5700;"><strong>予定</strong></td></tr>
+          <tr><td><strong>Ex7</strong></td><td>comfyui-pipeline-bench</td><td>ComfyUI 総合 — Ex4 Mellow Pencil &times; Ex6 i2v 融合パイプライン</td><td style="color:#bf5700;"><strong>予定</strong></td></tr>
+          <tr><td><strong>Ex8</strong></td><td>qwen3tts-bench</td><td>Qwen3-TTS 長文音声合成実験</td><td style="color:#bf5700;"><strong>予定</strong></td></tr>
+          <tr><td><strong>Ex9</strong></td><td>llm-jp-moshi-bench</td><td>llm-jp-moshi 高速音声応答実験</td><td style="color:#bf5700;"><strong>予定</strong></td></tr>
+          <tr><td><strong>Ex10</strong></td><td>total-summary</td><td>上記全体の所要時間・所要ストレージ総合レポート</td><td style="color:#bf5700;"><strong>予定</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
     <div class="exp-grid">
 
+      <!-- Ex0: disk-speed-bench -->
+      <div class="exp-card">
+        <div class="exp-icon">&#x1F4BE;</div>
+        <h3>Ex0: disk-speed-bench</h3>
+        <div class="exp-tool">ダミーファイル シーケンシャル R/W</div>
+        <p>256MB / 512MB / 1024MB のダミーファイルでシーケンシャルリード/ライト速度を計測。ストレージの基本スペックを確認。</p>
+        <div class="exp-hypothesis">Gen5 NVMe のカタログ値 14,800 MB/s に対する実効速度を計測。</div>
+      </div>
+
+      <!-- Ex1: download-bench -->
+      <div class="exp-card">
+        <div class="exp-icon">&#x2B07;</div>
+        <h3>Ex1: download-bench</h3>
+        <div class="exp-tool">モデルダウンロード実測</div>
+        <p>HuggingFace / Ollama からのモデルダウンロード速度を実測。ネットワーク + ストレージ書き込みの複合スループットを計測。</p>
+        <div class="exp-hypothesis">ダウンロード時はネットワーク帯域がボトルネック。ストレージ速度は書き込み側で影響。</div>
+      </div>
+
+      <!-- Ex2: vibe-local-bench -->
       <div class="exp-card">
         <div class="exp-icon">&gt;_</div>
-        <h3>vibe-local-bench</h3>
-        <div class="exp-tool">Ollama + qwen3:8b</div>
-        <p>ローカル LLM のモデルロード時間とコード生成時間を計測。5.2 GB モデルの読み込みでストレージ速度差を定量化します。</p>
+        <h3>Ex2: vibe-local-bench</h3>
+        <div class="exp-tool">Ollama + qwen3:8b / 1.7b</div>
+        <p>ローカル LLM のモデルロード時間とコード生成時間を計測。5.2 GB モデルの読み込みでストレージ速度差を定量化。</p>
         <div class="exp-hypothesis">Gen5 では即座に起動。HDD では待機が体感に直結。</div>
       </div>
 
+      <!-- Ex3: comfyui-imggen SDXL -->
       <div class="exp-card">
         <div class="exp-icon">&#128444;</div>
-        <h3>comfyui-imggen-bench</h3>
-        <div class="exp-tool">ComfyUI + <a href="https://github.com/aicuai/AiCuty" target="_blank" rel="noopener">AiCuty</a> SDXL ワークフロー</div>
+        <h3>Ex3: comfyui-imggen-bench (SDXL)</h3>
+        <div class="exp-tool">ComfyUI + Animagine XL 4.0</div>
+        <p>SDXL Checkpoint 単体 (6.46GB) での画像生成。コールドスタート vs ウォームスタートの差でストレージ影響を分離。</p>
+        <div class="exp-hypothesis">コールドスタートで差が出る。ウォーム時は GPU 依存で差なし。</div>
+      </div>
+
+      <!-- Ex4: comfyui-imggen AiCuty -->
+      <div class="exp-card">
+        <div class="exp-icon">&#128444;</div>
+        <h3>Ex4: comfyui-imggen-bench (AiCuty)</h3>
+        <div class="exp-tool">ComfyUI + <a href="https://github.com/aicuai/AiCuty" target="_blank" rel="noopener">AiCuty</a> 複数モデル比較</div>
         <p>
-          SDXL 系モデル (<a href="https://huggingface.co/cagliostrolab/animagine-xl-4.0" target="_blank" rel="noopener">Animagine XL 4.0</a>)
-          + LoRA 2 種 + RealESRGAN アップスケールによる本格的なイラスト生成パイプラインを計測。
-          Checkpoint (~7GB) + LoRA + VAE のコールドロードと、ウォームスタートの差でストレージ速度の影響を分離します。
+          SDXL / WAI / AnimagineXL4 / Mellow Pencil の複数 Checkpoint を切り替えながら計測。
+          Checkpoint + LoRA &times; 2 + RealESRGAN アップスケールによる本格パイプライン。
         </p>
         <div class="exp-hypothesis">
-          736&times;1128 / 28 steps / DPM++ 2M SDE Karras / CFG 5。
-          コールドスタートでストレージ速度差が顕著。ウォーム時は GPU 依存。
-        </div>
-        <div style="margin-top:8px; font-size:0.85rem; color:var(--text-secondary);">
-          <strong>起動パラメータ条件:</strong> <code>--highvram</code> / <code>--lowvram</code> / デフォルトの 3 条件 &times; 3 回計測。
-          VRAM 管理方式の違いがモデルロード時間とストレージ I/O パターンに与える影響を分離。
+          モデル切り替え時の再ロードでストレージ速度差が顕著に。736&times;1128 / 28 steps / DPM++ 2M SDE Karras / CFG 5。
         </div>
       </div>
 
+      <!-- Ex5: Wan 2.2 -->
       <div class="exp-card">
         <div class="exp-icon">&#127916;</div>
-        <h3>comfyui-video-bench</h3>
-        <div class="exp-tool">ComfyUI + LTX-Video 2.3 / Wan 2.2 14B</div>
+        <h3>Ex5: comfyui-video-bench (Wan 2.2)</h3>
+        <div class="exp-tool">ComfyUI + Wan 2.2 14B t2v / i2v</div>
         <p>
-          AI 動画生成のトータル時間を計測。<strong>LTX 2.3</strong> (22B FP8, ~29GB) と
-          <strong>Wan 2.2</strong> (14B Dual-UNET, ~34GB) の 2 モデルで検証。
-          巨大モデルのロード・オフロードを繰り返すパイプラインで、ストレージ速度の影響が最も顕著に表れる実験。
+          Wan 2.2 14B (Dual-UNET ~34GB) で text-to-video &amp; image-to-video を計測。
+          High/Low Noise の 2 つの UNET 切り替えでモデルスイッチングの影響も可視化。
         </p>
-        <div class="exp-hypothesis">
-          モデルロードでストレージ速度差が直結。Wan 2.2 は High/Low Noise の 2 つの UNET を
-          切り替えてロードするため、モデルスイッチングのベンチマークとしても機能。
-        </div>
-        <div style="margin-top:8px; font-size:0.85rem; color:var(--text-secondary);">
-          <strong>必要容量:</strong> LTX 2.3 = ~39GB / Wan 2.2 = ~36GB（モデル + テキストエンコーダー + VAE + LoRA）。
-          順次ダウンロード・テスト・削除の流れで実施。
-        </div>
+        <div class="exp-hypothesis">巨大モデル (~34GB) のロードで Gen5 NVMe の優位性が最大化。</div>
       </div>
 
+      <!-- Ex6: LTX 2.3 -->
+      <div class="exp-card">
+        <div class="exp-icon">&#127916;</div>
+        <h3>Ex6: comfyui-video-bench (LTX 2.3)</h3>
+        <div class="exp-tool">ComfyUI + LTX 2.3 22B FP8 t2v / i2v</div>
+        <p>
+          LTX 2.3 (22B FP8 ~29GB + Gemma 3 12B + Upscaler) で動画生成。
+          単一 29GB チェックポイントのロードでストレージ速度差が直結。
+        </p>
+        <div class="exp-hypothesis">合計 ~37GB のモデルロードで最もストレージ速度の影響が大きい実験。</div>
+      </div>
+
+      <!-- Ex7: 総合パイプライン -->
+      <div class="exp-card">
+        <div class="exp-icon">&#x1F3AC;</div>
+        <h3>Ex7: comfyui-pipeline-bench</h3>
+        <div class="exp-tool">ComfyUI 総合パイプライン</div>
+        <p>
+          Ex4 の Mellow Pencil 画像生成結果を Ex6 LTX 2.3 i2v に入力する融合パイプライン。
+          画像生成 → 動画生成の連続ワークフローでストレージ/VRAM の総合影響を計測。
+        </p>
+        <div class="exp-hypothesis">複数モデルの連続ロードが発生し、ストレージ速度差が累積的に効く。</div>
+      </div>
+
+      <!-- Ex8: TTS -->
       <div class="exp-card">
         <div class="exp-icon">&#127908;</div>
-        <h3>qwen3tts-bench</h3>
-        <div class="exp-tool">Qwen3-TTS</div>
-        <p>音声合成の初動時間（Time-to-First-Audio）と MP3 バッチ生成速度を計測。ストレージ速度が初動レイテンシに与える影響を可視化します。</p>
+        <h3>Ex8: qwen3tts-bench</h3>
+        <div class="exp-tool">Qwen3-TTS 長文音声合成</div>
+        <p>長文テキストの音声合成で初動時間（Time-to-First-Audio）とバッチ生成速度を計測。</p>
         <div class="exp-hypothesis">初動時間でストレージ速度の影響を可視化。合成中は影響軽微。</div>
+      </div>
+
+      <!-- Ex9: llm-jp-moshi -->
+      <div class="exp-card">
+        <div class="exp-icon">&#127908;</div>
+        <h3>Ex9: llm-jp-moshi-bench</h3>
+        <div class="exp-tool">llm-jp-moshi 高速音声応答</div>
+        <p>15.6GB モデルの高速音声応答。モデルロード時間と応答レイテンシを計測。</p>
+        <div class="exp-hypothesis">15GB 級モデルのロードで Gen5 NVMe の効果が明確に表れる。</div>
+      </div>
+
+      <!-- Ex10: 総合 -->
+      <div class="exp-card">
+        <div class="exp-icon">&#x1F4CA;</div>
+        <h3>Ex10: 総合レポート</h3>
+        <div class="exp-tool">全実験の所要時間・ストレージ消費</div>
+        <p>Ex0〜Ex9 の全実験結果を統合し、所要時間・所要ストレージ容量の総合レポートを作成。</p>
+        <div class="exp-hypothesis">Samsung 9100 PRO 8TB の AI ワークフロー全体への効果を可視化。</div>
       </div>
 
     </div>
@@ -506,6 +589,74 @@
           <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:4px;"><strong>G:</strong> ICY DOCK (11.4s cold)</p>
         </div>
       </div>
+    </div>
+
+    <!-- LTX-Video 2B 詳細結果 -->
+    <div class="exp-card" style="margin-bottom:20px; border-left: 4px solid #bf5700;">
+      <h3>&#127916; Experiment: ComfyUI LTX-Video 2B 動画生成ベンチマーク（詳細）</h3>
+      <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:12px;">
+        <strong>モデル:</strong> LTX-Video 2B v0.9.5 (5.91 GB) + T5-XXL FP16 (9.12 GB)<br>
+        <strong>設定:</strong> SamplerCustom euler 20steps, CFG=1.0, 512&times;320, 25フレーム @24fps<br>
+        <strong>ワークフロー:</strong> <code>workflows/ltx_2b_t2v_bench.json</code>（CLIPLoader + ModelSamplingLTXV + LTXVScheduler）<br>
+        <strong>ComfyUI:</strong> v0.16.4, PyTorch 2.10.0+cu128<br>
+        <strong>条件:</strong> ドライブごとに ComfyUI を再起動（コールドスタート計測）
+      </p>
+      <div style="overflow-x:auto;">
+        <table class="storage-table" style="margin-bottom:16px;">
+          <thead>
+            <tr>
+              <th></th>
+              <th style="color:#0969da;">D: (Gen5 NVMe)</th>
+              <th style="color:#bf5700;">E: (SATA SSD)</th>
+              <th style="color:#cf222e;">F: (HDD)</th>
+              <th style="color:#1a7f37;">G: (ICY DOCK)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Run 1</strong> (コールドスタート)</td>
+              <td><strong style="color:#1a7f37;">8.07s</strong></td>
+              <td>37.39s</td>
+              <td><strong style="color:#cf222e;">60.88s</strong></td>
+              <td>11.41s</td>
+            </tr>
+            <tr>
+              <td><strong>Run 2</strong> (VRAM キャッシュ残)</td>
+              <td>7.31s</td>
+              <td>7.30s</td>
+              <td>7.32s</td>
+              <td>7.32s</td>
+            </tr>
+            <tr>
+              <td><strong>Run 3</strong> (VRAM キャッシュ残)</td>
+              <td>7.32s</td>
+              <td>7.30s</td>
+              <td>7.33s</td>
+              <td>8.18s</td>
+            </tr>
+            <tr style="background:var(--bg-secondary); font-weight:bold;">
+              <td>中央値</td>
+              <td style="color:#0969da;">7.32s</td>
+              <td>7.30s</td>
+              <td>7.33s</td>
+              <td>8.18s</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h4 style="margin-bottom:8px;">考察</h4>
+      <ul style="list-style:disc; padding-left:20px; color:var(--text-secondary); font-size:0.9rem; line-height:1.8;">
+        <li><strong>Run 1 のコールドスタートでストレージ差が明確に出た</strong>
+          <ul style="list-style:circle; padding-left:16px; margin-top:4px;">
+            <li>D: (Gen5 NVMe) 8.1s vs F: (HDD) 60.9s &rarr; <strong style="color:#cf222e;">約7.5倍の差</strong></li>
+            <li>E: (SATA SSD) 37.4s &rarr; NVMe の約4.6倍</li>
+            <li>G: (ICY DOCK) 11.4s &rarr; D: と近い（同じ 9100 PRO だが ICY DOCK 経由で若干遅い）</li>
+          </ul>
+        </li>
+        <li>Run 2-3 は <code>free_memory</code> でアンロード指示を出しているが、VRAM/システムキャッシュに残っているため差が出ない</li>
+        <li>合計モデルサイズ ~15GB（LTX 2B + T5-XXL）のロードでストレージ速度差が顕在化</li>
+        <li><strong>結論:</strong> 15GB 級のモデルロードでは Gen5 NVMe の優位性が明確。SATA SSD/HDD との差は 5〜8 倍</li>
+      </ul>
     </div>
 
     <!-- Code Generation -->
