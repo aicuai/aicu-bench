@@ -3,79 +3,23 @@
     "comfyui":  "D:\\ComfyUI",
     "downloads":  [
                       {
-                          "name":  "HF: LTX 2.3 22B FP8",
-                          "category":  "huggingface",
-                          "elapsed_s":  249.49,
+                          "name":  "Ollama: qwen3:8b",
+                          "category":  "ollama",
+                          "elapsed_s":  2.63,
                           "success":  true,
                           "error":  null,
-                          "timestamp":  "2026-03-11T19:39:08.0512885+09:00"
+                          "timestamp":  "2026-03-11T20:26:38.0055229+09:00"
                       },
                       {
-                          "name":  "HF: Gemma 3 12B IT FP4 (LTX 2.3 text encoder)",
-                          "category":  "huggingface",
-                          "elapsed_s":  97.45,
+                          "name":  "Ollama: qwen3:1.7b",
+                          "category":  "ollama",
+                          "elapsed_s":  0.75,
                           "success":  true,
                           "error":  null,
-                          "timestamp":  "2026-03-11T19:40:45.5042588+09:00"
-                      },
-                      {
-                          "name":  "HF: LTX 2.3 Distilled LoRA",
-                          "category":  "huggingface",
-                          "elapsed_s":  59.2,
-                          "success":  true,
-                          "error":  null,
-                          "timestamp":  "2026-03-11T19:41:44.7055422+09:00"
-                      },
-                      {
-                          "name":  "HF: Wan 2.2 T2V High Noise 14B FP8",
-                          "category":  "huggingface",
-                          "elapsed_s":  0.68,
-                          "success":  true,
-                          "error":  null,
-                          "timestamp":  "2026-03-11T19:41:45.3939467+09:00"
-                      },
-                      {
-                          "name":  "HF: Wan 2.2 T2V Low Noise 14B FP8",
-                          "category":  "huggingface",
-                          "elapsed_s":  0.61,
-                          "success":  true,
-                          "error":  null,
-                          "timestamp":  "2026-03-11T19:41:46.0103693+09:00"
-                      },
-                      {
-                          "name":  "HF: UMT5-XXL FP8 (Wan 2.2 CLIP)",
-                          "category":  "huggingface",
-                          "elapsed_s":  59.41,
-                          "success":  true,
-                          "error":  null,
-                          "timestamp":  "2026-03-11T19:42:45.4186199+09:00"
-                      },
-                      {
-                          "name":  "HF: Wan 2.1 VAE",
-                          "category":  "huggingface",
-                          "elapsed_s":  4.21,
-                          "success":  true,
-                          "error":  null,
-                          "timestamp":  "2026-03-11T19:42:49.6342628+09:00"
-                      },
-                      {
-                          "name":  "HF: Wan 2.2 LightX2V LoRA High Noise",
-                          "category":  "huggingface",
-                          "elapsed_s":  0.7,
-                          "success":  true,
-                          "error":  null,
-                          "timestamp":  "2026-03-11T19:42:50.3382662+09:00"
-                      },
-                      {
-                          "name":  "HF: Wan 2.2 LightX2V LoRA Low Noise",
-                          "category":  "huggingface",
-                          "elapsed_s":  0.61,
-                          "success":  true,
-                          "error":  null,
-                          "timestamp":  "2026-03-11T19:42:50.9541542+09:00"
+                          "timestamp":  "2026-03-11T20:26:38.7585963+09:00"
                       }
                   ],
-    "total_s":  472.36,
+    "total_s":  3.38,
     "failed":  0,
-    "generated":  "2026-03-11T19:42:50.9851740+09:00"
+    "generated":  "2026-03-11T20:26:38.7884741+09:00"
 }
