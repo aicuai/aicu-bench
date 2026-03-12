@@ -983,50 +983,7 @@ cd AICU-SSD-Bench
     <pre class="code-block" style="margin-top:12px;"><code># Claude Code を起動（CLAUDE.md を自動読み込み）
 claude</code></pre>
 
-    <!-- 参加方法 -->
-    <h3 style="margin-top:32px; margin-bottom:12px; font-size:1.1rem;">この実験に参加して新しいデータを追加しませんか?</h3>
-    <p style="margin-bottom:20px;">
-      あなたの PC でベンチマークを実行し、コミュニティの比較データに貢献できます。
-      <strong>所要時間は約 10〜30 分</strong>。
-    </p>
-    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px;">
-      <div class="exp-card">
-        <div class="exp-icon">1</div>
-        <h3>リポジトリをクローン</h3>
-        <pre class="code-block" style="margin-top:12px;"><code>git clone https://github.com/aicuai/AICU-SSD-Bench
-cd AICU-SSD-Bench</code></pre>
-      </div>
-      <div class="exp-card">
-        <div class="exp-icon">2</div>
-        <h3>Ollama をインストール</h3>
-        <p><a href="https://ollama.com/" target="_blank" rel="noopener">ollama.com</a> からダウンロード。</p>
-        <pre class="code-block" style="margin-top:12px;"><code>$env:OLLAMA_MODELS = "D:\ollama\models"
-ollama pull qwen3:8b</code></pre>
-      </div>
-      <div class="exp-card">
-        <div class="exp-icon">3</div>
-        <h3>ベンチマーク実行</h3>
-        <pre class="code-block" style="margin-top:12px;"><code>.\scripts\run_all_benchmarks.ps1 -Fresh</code></pre>
-      </div>
-      <div class="exp-card">
-        <div class="exp-icon">4</div>
-        <h3>結果を共有</h3>
-        <pre class="code-block" style="margin-top:12px;"><code>cat results\bench_summary.json</code></pre>
-        <p style="margin-top:8px; font-size:0.85rem; color:var(--text-secondary);">
-          送信データ: CPU/GPU/RAM スペック、ストレージ型番（シリアル番号はハッシュ化）、ベンチマーク結果。
-        </p>
-      </div>
-    </div>
-
-    <!-- プライバシー -->
-    <div style="margin-top:20px; padding:16px 20px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius);">
-      <h4 style="margin-bottom:8px;">プライバシー保護</h4>
-      <ul style="list-style:disc; padding-left:20px; color:var(--text-secondary); font-size:0.9rem; line-height:1.8;">
-        <li>ホスト名・SSD シリアル番号は SHA-256 でハッシュ化</li>
-        <li>個人を特定できる情報は一切送信されません</li>
-        <li><code>-SkipSubmit</code> フラグで送信無効化可能</li>
-      </ul>
-    </div>
+    <!-- 参加方法: エンドポイント未実装のため非表示 (Issue #3) -->
 
     <!-- 関連リンク -->
     <h3 style="margin-top:32px; margin-bottom:12px; font-size:1.1rem;">関連リンク</h3>
